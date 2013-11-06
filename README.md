@@ -13,38 +13,41 @@ It uses the OSM API so don't go mad with it - follow http://wiki.openstreetmap.o
 
 
 Eclipse
-=======
+-------
 You can import it into Eclipse if you want to (although, given that it's only one Java file "Changeset1.java", there's really no need to).  Just "javac Changeset1.java" should work if you're not in an IDE.
 
 
 Usage examples
-==============
-java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -output=example_out.txt
+--------------
+    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -output=example_out.txt
 
 This looks for changesets by the user named "SomeoneElse" in the sepecified bounding box.  The output file contains lines like this, one per changset:
 
+<pre>
 SomeoneElse;61942;18740137;Potlatch 2;2.3;Wragby road - updated lanes where I'd miscounted.;Changeset: bbox overlaps
-
+</pre>
 
 Pass a "download" parameter and it'll download changeset contents and check for things that might be iffy in there too:
 
-java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -output=example_out.txt
+    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -output=example_out.txt
 
 
 You can also group a series of checks into an input file.  Let's imagine that "example2_in.txt" contains:
 
+<pre>
 -display_name="SomeoneElse_Revert" -bbox=-7,50,2,61 -download=1
 -display_name="SomeoneElse"  -bbox=-2.123,52.809,-0.331,53.521 -download=1
+</pre>
 
 You can then:
 
-java Changeset1 -time="2013-11-04T20:53" -debug=5 -input=example1_in.txt -output=example2_out.txt
+    java Changeset1 -time="2013-11-04T20:53" -debug=5 -input=example1_in.txt -output=example2_out.txt
 
 It'll then process each of the users in the input file.
 
 
 Things that it can spot
-=======================
+-----------------------
 Deleted ways and relations
 Single node ways
 Ways with no tags (which then need to be checked manually to make sure that they're not part of a relation).
