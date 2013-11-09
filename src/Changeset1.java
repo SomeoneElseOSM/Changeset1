@@ -9,7 +9,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-// See also https://github.com/SomeoneElseOSM/Changeset1
+// See also https://github.com/SomeoneElseOSM/Changeset1 for more details
 
 public class Changeset1 
 {
