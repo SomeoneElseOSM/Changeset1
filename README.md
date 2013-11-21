@@ -1,6 +1,5 @@
 Changeset1
 ==========
-
 Process OSM's changeset feed and check node overlaps within a bounding box
 
 What it's not designed to be:
