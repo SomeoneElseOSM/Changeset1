@@ -20,7 +20,7 @@ Usage examples
 --------------
     java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -output=example_out.txt
 
-This looks for changesets by the user named `SomeoneElse` in the sepecified bounding box.  The output file contains lines like this, one per changset:
+This looks for changesets by the user named `SomeoneElse` in the sepecified bounding box.  The output file contains lines like this, one per changeset:
 
 <pre>
 SomeoneElse;61942;18740137;Potlatch 2;2.3;Wragby road - updated lanes where I'd miscounted.;Changeset: bbox overlaps
