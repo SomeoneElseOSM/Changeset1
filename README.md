@@ -14,7 +14,7 @@ It uses the OSM API so don't go mad with it - follow http://wiki.openstreetmap.o
 
 Eclipse
 -------
-You can import it into Eclipse if you want to (although, given that it's only one Java file `Changeset1.java`, there's really no need to).  Just `javac Changeset1.java` should work if you're not in an IDE.
+You can import it into Eclipse if you want to (although, given that it's only one Java file `Changeset1.java`, there's really no need to).  If you're not using an IDE, install a JDK (e.g. from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html), then just ensure that the `javac` that you have just installed is on the PATH and `javac Changeset1.java` in order to create `Notes01.class`.
 
 
 Usage examples
