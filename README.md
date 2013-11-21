@@ -50,5 +50,5 @@ Things that it can spot
 -----------------------
 * Deleted ways and relations
 * Single node ways
-* Ways with no tags (which then need to be checked manually to make sure that they're not part of a relation).
+* Ways with no tags (which then need to be checked manually to make sure that they're not part of a relation, or were updated later in the changeset to have tags).
 
