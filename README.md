@@ -44,6 +44,8 @@ You can then:
 
 It'll then process each of the users in the input file.
 
+The maximum number of changesets returned is restricted by the API limit.
+
 
 Things that it can spot
 -----------------------
