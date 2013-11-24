@@ -53,3 +53,7 @@ Things that it can spot
 * Single node ways
 * Ways with no tags (which then need to be checked manually to make sure that they're not part of a relation, or were updated later in the changeset to have tags).
 
+
+Finally
+-------
+It's very much still a work in progress - lots of tidying up remains to be done.
