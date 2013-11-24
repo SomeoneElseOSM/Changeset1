@@ -56,4 +56,4 @@ Things that it can spot
 
 Finally
 -------
-It's still very much a work in progress - lots of tidying up remains to be done.
+It's still very much a work in progress - there is lots of tidying up that remains to be done.
