@@ -1027,7 +1027,8 @@ public class Changeset1
  * we already know because our_interest is set to Overlap_Yes.
  * 
  * Note that the "bbox" parameter wasn't passed to the API so we're reading through all changesets for a user
- * within our date range, not just those within the bbox. 
+ * within our date range, not just those within the bbox.  The reason for this is so that we can tell whether
+ * a user has (a) edited near us, (b) edited elsewhere or (c) not edited at all.
  * ------------------------------------------------------------------------------------------------------------ */
 
 							if ( arg_out_file != "" )
