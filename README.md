@@ -13,7 +13,7 @@ It uses the OSM API so please don't go mad with it - follow http://wiki.openstre
 
 Eclipse
 -------
-You can import it into Eclipse if you want to (although, given that it's only one Java file `Changeset1.java`, there's really no need to).  If you're not using an IDE, install a JDK (e.g. from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html), then just ensure that the `javac` that you have just installed is on the PATH and `javac Changeset1.java` in order to create `Notes01.class`.
+You can import it into Eclipse if you want to (although, given that it's only two Java classes `Changeset1` and `OsmObjectInfo`, there's really no need to).  If you're not using an IDE, install a JDK (e.g. from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html), then just ensure that the `javac` that you have just installed is on the PATH and `javac Changeset1.java` and `javac OsmObjectInfo.java` in order to create `Changeset1.class` and `OsmObjectInfo.class`.
 
 
 Usage examples
@@ -29,6 +29,13 @@ SomeoneElse;61942;18740137;Potlatch 2;2.3;Wragby road - updated lanes where I'd 
 Pass a `download` parameter and it'll download changeset contents and check for things that might be iffy in there too:
 
     java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -output=example_out.txt
+
+
+Pass a `building` parameter as well as `download` and it'll check for buildings and shops with more than a certain number of nodes.
+
+    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -building=10 -output=example_out.txt
+
+This is designed to help flag landuse areas that have been changed to buildings or shops by iD users by mistake (see https://github.com/systemed/iD/issues/542).
 
 
 You can also group a series of checks into an input file.  Let's imagine that `example2_in.txt` contains:
