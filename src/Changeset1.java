@@ -606,8 +606,6 @@ public class Changeset1
 									}
 								}
 								
-//qqqdo here's where we'd flag overnoded buildings I suspect
-								
 								try
 								{
 									if ( building_or_shop_found && ( way_nodes > Integer.valueOf( passed_building )))
