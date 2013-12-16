@@ -1568,13 +1568,52 @@ public class Changeset1
 				
 				while(( in_line = myBufferedReader.readLine() ) != null )
 				{
+/* ------------------------------------------------------------------------------
+ * The "line_" values default to "".  If any of these values aren't set from
+ * the line, set to the comment line "arg_" values. 
+ * ------------------------------------------------------------------------------ */
 					line_display_name = get_line_param( param_display_name, in_line );
+					
+					if ( line_display_name.equals( "" ))
+					{
+						line_display_name = arg_display_name;
+					}
+					
 					line_uid          = get_line_param( param_uid, in_line );
+					
+					if ( line_uid.equals( "" ))
+					{
+						line_uid = arg_uid;
+					}
+					
 					line_time         = get_line_param( param_time, in_line );
+					
+					if ( line_time.equals( "" ))
+					{
+						line_time = arg_time;
+					}
+					
 					line_bbox         = get_line_param( param_bbox, in_line );
+					
+					if ( line_bbox.equals( "" ))
+					{
+						line_bbox = arg_bbox;
+					}
+					
 					line_download     = get_line_param( param_download, in_line );
+					
+					if ( line_download.equals( "" ))
+					{
+						line_download = arg_download;
+					}
+					
 					line_building     = get_line_param( param_building, in_line );
 
+					if ( line_building.equals( "" ))
+					{
+						line_building = arg_building;
+					}
+					
 					int comma_pos = line_bbox.indexOf( "," );
 					int old_comma_pos = 0;
 					
@@ -1587,7 +1626,6 @@ public class Changeset1
 							System.out.println( "line_min_lon: " + line_min_lon_string );
 						}
 
-						
 						old_comma_pos = comma_pos;
 						comma_pos = line_bbox.indexOf( ",", comma_pos+1 );
 
