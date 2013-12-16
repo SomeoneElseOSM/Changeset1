@@ -40,10 +40,22 @@ public class OsmObjectInfo {
 		return item_uid;
 	}
 	
-/* ------------------------------------------------------------------------------------------------------------
- * We're processing the XML for a changeset, and have encountered a node in it. 
- * Check to see whether the node overlaps with our area of interest.
- * ------------------------------------------------------------------------------------------------------------ */
+	/**
+	 * process_download_node
+	 * 
+	 * We're processing the XML for a changeset, and have encountered a node in it. 
+	 * Check to see whether the node overlaps with our area of interest.
+	 * 
+	 * @param passed_min_lat_string  The bounding box that we're interested in - node positions will be checked against this box.
+	 * @param passed_min_lon_string
+	 * @param passed_max_lat_string
+	 * @param passed_max_lon_string
+	 * 
+	 * @param passed_l2_item  The XML Node in the tree that corresponds to an OSM Node that we're interested in
+	 * @param passed_arg_debug
+	 * 
+	 * @return  returns "true" if this node overlaps the bounding box that we passed in.
+	 */
 	boolean process_download_node( String passed_min_lat_string, String passed_min_lon_string, 
 			String passed_max_lat_string, String passed_max_lon_string, 
 			Node passed_l2_item, int passed_arg_debug )

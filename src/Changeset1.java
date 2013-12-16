@@ -36,6 +36,7 @@ public class Changeset1
 	final static String param_bbox = "-bbox=";		// Not passed to the API; we compare changesets in that box
 	final static String param_download = "-download=";
 	final static String param_building = "-building=";
+	final static String param_overlapnodes = "-report_overlap_nodes=";
 	
 	final static int Overlap_All   = 1;
 	final static int Overlap_Yes   = 2;
@@ -58,6 +59,8 @@ public class Changeset1
  * that they have changed the landuse to a building.
  * ------------------------------------------------------------------------------ */
 	static String arg_building = "2001";		// -building
+	
+	static boolean arg_overlapnodes = true;		// -report_overlap_nodes
 	
 	static String arg_min_lat_string = "";
 	static String arg_min_lon_string = "";
@@ -255,14 +258,24 @@ public class Changeset1
 	}
 
 
-/* ------------------------------------------------------------------------------------------------------------
- * The XML node passed in here is the root node of the XML tree of the download of this changeset
- * The other parameters are used for comparisons and reporting.
- * The return value is "does this changeset have nodes within our area of interest".
- * ------------------------------------------------------------------------------------------------------------ */
+	/**
+	 * process_download_xml
+	 * 
+	 * @param root_node  The XML node passed in here is the root node of the XML tree of the download of this changeset
+	 * @param passed_changeset_number
+	 * 
+	 * @param passed_min_lat_string  The bounding box that we're interested in - node positions will be checked against this box.
+	 * @param passed_min_lon_string
+	 * @param passed_max_lat_string
+	 * @param passed_max_lon_string  The "number of nodes in a shop/building" value to worry about
+	 * 
+	 * @param passed_building  The "number of nodes in a shop/building" value to worry about
+	 * 
+	 * @return  returns "true" if there are nodes in the changeset that overlaps the bounding box that we passed in.
+	 */
 	private static boolean process_download_xml( Node root_node, String passed_changeset_number, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_building )
+			String passed_building, boolean passed_overlapnodes )
 	{
 		boolean return_value = false;
 		
@@ -544,9 +557,9 @@ public class Changeset1
 										} // !tag
 									} // !nd
 								}
-							} // for level 3 nodes
+							} // for level 3 nodes - something like "nd", "member" or "tag".
 
-							if ( node_overlaps )
+							if (( node_overlaps )  && passed_overlapnodes )
 							{
 								return_value = true;
 								
@@ -621,7 +634,10 @@ public class Changeset1
 
 /* ------------------------------------------------------------------------------------------------------------
  * Deleted items are expected to have no tags; likewise nodes probably won't.
- * Ways and Relations probably will, though (although this ignores ways that might be part of relations)
+ * Ways and Relations probably will, though (although this ignores ways that might be part of relations).
+ * 
+ * We report on ways and relations without tags so that they can be manually checked to see if they are part
+ * of a relation.
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( arg_debug >= Log_Informational_2 )
 							{
@@ -643,17 +659,33 @@ public class Changeset1
 								}
 							}
 						}
-					}
+					} // for l2 XML nodes (nodes, ways and relations)
 				}
 			}
 		}
 		
 		return return_value;
 	}
-	
+
+	/**
+	 * download_changeset
+	 * 
+	 * @param passed_number  The changeset number to download
+	 * 
+	 * @param passed_min_lat_string  The bounding box that we're interested in - node positions will be checked against this box.
+	 * @param passed_min_lon_string
+	 * @param passed_max_lat_string
+	 * @param passed_max_lon_string
+	 * 
+	 * @param passed_building  The "number of nodes in a shop/building" value to worry about
+	 * 
+	 * @return returns "true" if there are nodes in the changeset that overlaps the bounding box that we passed in.
+	 * 
+	 * @throws Exception
+	 */
 	private static boolean download_changeset( String passed_number, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_building ) throws Exception
+			String passed_building, boolean passed_overlapnodes ) throws Exception
 	{
 		boolean return_value = false;
 		
@@ -687,9 +719,10 @@ public class Changeset1
 	
 	    Document AJTdocument = AJTbuilder.parse( inputStream );
 	    Element AJTrootElement = AJTdocument.getDocumentElement();
+	    
 	    return_value = process_download_xml( AJTrootElement, passed_number, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-	    		passed_building );
+	    		passed_building, passed_overlapnodes );
 	
 	    input.close();
 	    return return_value;
@@ -701,7 +734,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 	private static void process_changesets_xml( Node root_node, String passed_display_name, String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building )
+			String passed_download, String passed_building, boolean passed_overlapnodes )
 	{
 		int osm_changesets_found = 0;
 		int osm_changesets_of_interest = 0;
@@ -894,9 +927,13 @@ public class Changeset1
 						{
 							try
 							{
+/* ------------------------------------------------------------------------------------------------------------
+ * Download the changeset and check it, but ignore the return value since we don't need to know if it 
+ * overlaps as we're interested in all changesets. 
+ * ------------------------------------------------------------------------------------------------------------ */
 								download_changeset( id_node.getNodeValue(), 
 										passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-										passed_building );
+										passed_building, passed_overlapnodes );
 							}
 							catch( Exception ex )
 							{
@@ -944,7 +981,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 									changeset_node_interest_flag = download_changeset( id_node.getNodeValue(), 
 											passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-											passed_building );
+											passed_building, passed_overlapnodes );
 									
 									if ( changeset_node_interest_flag )
 									{
@@ -1016,7 +1053,7 @@ public class Changeset1
 	
 	static void process_changesets_url_common ( URL passed_url, String passed_display_name, String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building ) throws Exception
+			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception
 	{
 		if ( arg_debug >= Log_Informational_2 )
 		{
@@ -1050,7 +1087,7 @@ public class Changeset1
 	    
 	    process_changesets_xml( AJTrootElement, passed_display_name, passed_uid, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-	    		passed_download, passed_building );
+	    		passed_download, passed_building, passed_overlapnodes );
 	
 	    input.close();
 	}
@@ -1058,7 +1095,7 @@ public class Changeset1
 	
 	static void process_display_name_and_time( String passed_display_name, String passed_time, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building ) throws Exception 
+			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1070,13 +1107,13 @@ public class Changeset1
 		
 		process_changesets_url_common( url, passed_display_name, "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building );
+				passed_download, passed_building, passed_overlapnodes );
 	}
 	
 	
 	static void process_uid_and_time( String passed_uid, String passed_time, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building ) throws Exception 
+			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1085,15 +1122,16 @@ public class Changeset1
 
 		URL url;
 		url = new URL( api_path + "changesets?user=" + ( URLEncoder.encode( passed_uid , "UTF-8" )) + "&time=" + passed_time );
+		
 		process_changesets_url_common( url, "", passed_uid, passed_min_lat_string, 
 				passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building );
+				passed_download, passed_building, passed_overlapnodes );
 	}
 	
 	
 	static void process_display_name( String passed_display_name, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building ) throws Exception 
+			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1102,15 +1140,16 @@ public class Changeset1
 
 		URL url;
 		url = new URL( api_path + "changesets?display_name=" + ( URLEncoder.encode( passed_display_name , "UTF-8" )));
+		
 		process_changesets_url_common( url, passed_display_name, "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building );
+				passed_download, passed_building, passed_overlapnodes );
 	}
 	
 	
 	static void process_uid( String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building ) throws Exception 
+			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1119,15 +1158,16 @@ public class Changeset1
 
 		URL url;
 		url = new URL( api_path + "changesets?user=" + ( URLEncoder.encode( passed_uid , "UTF-8" )));
+		
 		process_changesets_url_common( url, "", passed_uid, 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building );
+				passed_download, passed_building, passed_overlapnodes );
 	}
 	
 	
 	static void process_time( String passed_time, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building ) throws Exception 
+			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1136,12 +1176,22 @@ public class Changeset1
 
 		URL url;
 		url = new URL( api_path + "changesets?time=" + passed_time );
+		
 		process_changesets_url_common( url, "All Users", "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building );
+				passed_download, passed_building, passed_overlapnodes );
 	}
 	
-	static String get_line_param( String passed_param, String passed_in_line )
+	
+	/**
+	 * get_line_param
+	 * 
+	 * @param passed_param  The parameter that we are looking for, such as "-display_name=".
+	 * @param passed_in_line  The line that we've read from the input file in which we're looking for the value of that parameter.
+	 * 
+	 * @return  The value of the parameter from that line.
+	 */
+	static String get_line_string_param( String passed_param, String passed_in_line )
 	{
 		int param_start = 0;
 		int param_end = 0;
@@ -1199,6 +1249,7 @@ public class Changeset1
  * param_bbox = "-bbox=";
  * param_download = "-download=";
  * param_building = "-building=";
+ * param_overlapnodes = "-report_overlap_nodes=";
  * 
  * ------------------------------------------------------------------------------ */
 /**
@@ -1371,6 +1422,35 @@ public class Changeset1
 				} // -building
 				
 /* ------------------------------------------------------------------------------
+ * Should we explicitly report on nodes that overlap our bounding box?
+ * 
+ * It's useful for large changesets that have only few overlapping nodes (e.g.
+ * "tagfiddling" ones).
+ * 
+ * It's less useful for changesets that have a very large number of overlapping
+ * nodes.
+ * ------------------------------------------------------------------------------ */
+				if ( args[i].startsWith( param_overlapnodes ))
+				{	
+					try
+					{
+						arg_overlapnodes = ( Integer.valueOf( args[i].substring( param_overlapnodes.length())) > 0 );
+					}
+					catch( Exception ex )
+					{
+/* ------------------------------------------------------------------------------
+ * Any failure above just means that we leave arg_overlapnodes at the default 
+ * value
+ * ------------------------------------------------------------------------------ */
+					}
+
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "arg_overlapnodes: " + arg_overlapnodes );
+					}
+				} // -overlapnodes
+				
+/* ------------------------------------------------------------------------------
  * Debug level
  * ------------------------------------------------------------------------------ */
 				if ( args[i].startsWith( param_debug ))
@@ -1486,6 +1566,9 @@ public class Changeset1
 		
 /* ------------------------------------------------------------------------------
  * Actually do what we've been asked to do.
+ * 
+ * If we've not been passed an input file will just process the parameters from
+ * the command line.
  * ------------------------------------------------------------------------------ */
 		if ( arg_in_file.equals( "" ))
 		{
@@ -1505,18 +1588,25 @@ public class Changeset1
 					}
 					else
 					{
-						process_time( arg_time, arg_min_lat_string, arg_min_lon_string, arg_max_lat_string, arg_max_lon_string, arg_download, arg_building );
+						process_time( arg_time, arg_min_lat_string, arg_min_lon_string, 
+								arg_max_lat_string, arg_max_lon_string, 
+								arg_download, arg_building, arg_overlapnodes );
 					}
 				}
 				else
 				{ // no display_name, but we do have a uid
 					if ( arg_time.length() == 0 )
 					{
-						process_uid( arg_uid, arg_min_lat_string, arg_min_lon_string, arg_max_lat_string, arg_max_lon_string, arg_download, arg_building );
+						process_uid( arg_uid, arg_min_lat_string, arg_min_lon_string, 
+								arg_max_lat_string, arg_max_lon_string, 
+								arg_download, arg_building, arg_overlapnodes );
 					} // no time argument passed
 					else
 					{
-						process_uid_and_time( arg_uid, arg_time, arg_min_lat_string, arg_min_lon_string, arg_max_lat_string, arg_max_lon_string, arg_download, arg_building );
+						process_uid_and_time( arg_uid, arg_time, 
+								arg_min_lat_string, arg_min_lon_string, 
+								arg_max_lat_string, arg_max_lon_string, 
+								arg_download, arg_building, arg_overlapnodes );
 					}
 				}
 			} // no display_name argument passed
@@ -1524,16 +1614,22 @@ public class Changeset1
 			{ // display_name passed.  We'll not bother checking for a uid.
 				if ( arg_time.length() == 0 )
 				{
-					process_display_name( arg_display_name, arg_min_lat_string, arg_min_lon_string, arg_max_lat_string, arg_max_lon_string, arg_download, arg_building );
+					process_display_name( arg_display_name, 
+							arg_min_lat_string, arg_min_lon_string, 
+							arg_max_lat_string, arg_max_lon_string, 
+							arg_download, arg_building, arg_overlapnodes );
 				} // no time argument passed
 				else
 				{
-					process_display_name_and_time( arg_display_name, arg_time, arg_min_lat_string, arg_min_lon_string, arg_max_lat_string, arg_max_lon_string, arg_download, arg_building );
+					process_display_name_and_time( arg_display_name, arg_time, 
+							arg_min_lat_string, arg_min_lon_string, 
+							arg_max_lat_string, arg_max_lon_string, 
+							arg_download, arg_building, arg_overlapnodes );
 				}
 			} // user argument passed
 		} // no "in" file
 		else
-		{
+		{ // input file passed
 			if ( arg_in_file.equals( "!file" ))
 			{
 				if ( arg_debug >= Log_Informational_2 )
@@ -1545,8 +1641,17 @@ public class Changeset1
 			{
 /* ------------------------------------------------------------------------------
  * We do have an input file defined and we have been able to open it.
+ * 
+ * Each line in the input file can contain additional parameters.  For example,
+ * one could contain:
+ * 
+ * -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -report_overlap_nodes=1
+ * 
+ * Other than "input", "output", "dev" and "debug", any parameter can be used in
+ * an input file line in this way.  If a value is set on the command line, and
+ * to a different value in an input file line, the value on the input file 
+ * line takes precedence.
  * ------------------------------------------------------------------------------ */
-
 				if ( arg_debug >= Log_Informational_2 )
 				{
 					System.out.println( "Input file: " + arg_in_file );
@@ -1563,53 +1668,112 @@ public class Changeset1
 				String line_max_lon_string = "";
 				String line_download = "";
 				String line_building = "";
+				String line_overlapnodes_string = "";
+				boolean line_overlapnodes=arg_overlapnodes;
 				
 				while(( in_line = myBufferedReader.readLine() ) != null )
 				{
 /* ------------------------------------------------------------------------------
- * The "line_" values default to "".  If any of these values aren't set from
- * the line, set to the comment line "arg_" values. 
+ * The "line_" values default to "" (see above).  If any of these values aren't 
+ * set from the line, set to the comment line "arg_" values. 
  * ------------------------------------------------------------------------------ */
-					line_display_name = get_line_param( param_display_name, in_line );
+					line_display_name = get_line_string_param( param_display_name, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_display_name: " + line_display_name );
+					}
 					
 					if ( line_display_name.equals( "" ))
 					{
 						line_display_name = arg_display_name;
 					}
 					
-					line_uid          = get_line_param( param_uid, in_line );
+					line_uid          = get_line_string_param( param_uid, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_uid: " + line_uid );
+					}
 					
 					if ( line_uid.equals( "" ))
 					{
 						line_uid = arg_uid;
 					}
 					
-					line_time         = get_line_param( param_time, in_line );
+					line_time         = get_line_string_param( param_time, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_time: " + line_time );
+					}
 					
 					if ( line_time.equals( "" ))
 					{
 						line_time = arg_time;
 					}
 					
-					line_bbox         = get_line_param( param_bbox, in_line );
+					line_bbox         = get_line_string_param( param_bbox, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_bbox: " + line_bbox );
+					}
 					
 					if ( line_bbox.equals( "" ))
 					{
 						line_bbox = arg_bbox;
 					}
 					
-					line_download     = get_line_param( param_download, in_line );
+					line_download     = get_line_string_param( param_download, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_download: " + line_download );
+					}
 					
 					if ( line_download.equals( "" ))
 					{
 						line_download = arg_download;
 					}
 					
-					line_building     = get_line_param( param_building, in_line );
+					line_building     = get_line_string_param( param_building, in_line );
 
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_building: " + line_building );
+					}
+					
 					if ( line_building.equals( "" ))
 					{
 						line_building = arg_building;
+					}
+					
+					line_overlapnodes_string     = get_line_string_param( param_overlapnodes, in_line );
+
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_overlapnodes_string: " + line_overlapnodes_string );
+					}
+					
+					if ( line_overlapnodes_string.equals( "" ))
+					{
+/* ------------------------------------------------------------------------------
+ * Do nothing.  We've already set "line_overlapnodes = arg_overlapnodes" above 
+ * ------------------------------------------------------------------------------ */
+					}
+					else
+					{
+						try
+						{
+							line_overlapnodes = ( Integer.valueOf( line_overlapnodes_string ) > 0 );
+						}
+						catch( Exception ex )
+						{
+/* ------------------------------------------------------------------------------
+ * Do nothing.  We've already set "line_overlapnodes = arg_overlapnodes" above 
+ * ------------------------------------------------------------------------------ */
+						}
 					}
 					
 					int comma_pos = line_bbox.indexOf( "," );
@@ -1741,14 +1905,14 @@ public class Changeset1
 								{
 									process_uid( line_uid, 
 											line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-											line_download, line_building );
+											line_download, line_building, line_overlapnodes );
 								}
 							}
 							else
 							{
 								process_display_name( line_display_name, 
 										line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-										line_download, line_building );
+										line_download, line_building, line_overlapnodes );
 							}
 						} // no time argument passed
 						else
@@ -1759,20 +1923,20 @@ public class Changeset1
 								{
 									process_time( line_time, 
 											line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-											line_download, line_building );
+											line_download, line_building, line_overlapnodes );
 								}
 								else
 								{
 									process_uid_and_time( line_uid, line_time, 
 											line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-											line_download, line_building );
+											line_download, line_building, line_overlapnodes );
 								}
 							}
 							else
 							{
 								process_display_name_and_time( line_display_name, line_time, 
 										line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-										line_download, line_building );
+										line_download, line_building, line_overlapnodes );
 							}
 						}
 					}
