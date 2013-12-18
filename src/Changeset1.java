@@ -126,8 +126,27 @@ public class Changeset1
 	}
 	
 	
-	static boolean check_overlap( Double arg_min_lon, Double arg_min_lat, Double arg_max_lat, Double arg_max_lon,
-			                      Double min_lon,     Double min_lat,     Double max_lat,     Double max_lon )
+	/**
+	 * check_overlap
+	 * 
+	 * Checks whether two bounding boxes overlap.  Typically the first bounding box is what we're checking 
+	 * against (what the user specified that they were interested in) and the second is the bounding box
+	 * for the changeset that we are currently processing.
+	 * 
+	 * @param arg_min_lon  The first bounding box
+	 * @param arg_min_lat
+	 * @param arg_max_lat
+	 * @param arg_max_lon
+	 * 
+	 * @param min_lon The second bounding box
+	 * @param min_lat
+	 * @param max_lat
+	 * @param max_lon
+	 * 
+	 * @return true if the bounding boxes overlap.
+	 */
+	static boolean check_bboxes_overlap( Double arg_min_lon, Double arg_min_lat, Double arg_max_lat, Double arg_max_lon,
+			                             Double min_lon,     Double min_lat,     Double max_lat,     Double max_lon )
 	{
 		boolean return_value = false;
 		
@@ -217,8 +236,8 @@ public class Changeset1
 				p_max_lat_d = Double.valueOf( passed_max_lat_string ); 
 				p_max_lon_d = Double.valueOf( passed_max_lon_string ); 
 
-				it_overlaps = check_overlap( p_min_lon_d, p_min_lat_d, p_max_lat_d, p_max_lon_d,
-			                                 min_lon_d, min_lat_d, max_lat_d, max_lon_d );
+				it_overlaps = check_bboxes_overlap( p_min_lon_d, p_min_lat_d, p_max_lat_d, p_max_lon_d,
+			                                 		min_lon_d, min_lat_d, max_lat_d, max_lon_d );
 
 				if ( it_overlaps == true )
 				{
@@ -345,9 +364,9 @@ public class Changeset1
 							{
 								OsmObjectInfo osm_node = new OsmObjectInfo();
 								
-								node_overlaps = osm_node.process_download_node( passed_min_lat_string, passed_min_lon_string, 
+								node_overlaps = osm_node.process_downloaded_changeset_node( passed_min_lat_string, passed_min_lon_string, 
 										passed_max_lat_string, passed_max_lon_string, 
-										this_l2_item, arg_debug, passed_download_nodes );
+										this_l2_item, arg_debug, passed_download_nodes, api_path );
 								
 								item_id = osm_node.get_item_id();
 								item_user = osm_node.get_item_user();
@@ -361,7 +380,7 @@ public class Changeset1
 								{
 									OsmObjectInfo osm_wayrelation = new OsmObjectInfo();
 									
-									osm_wayrelation.process_download_wayrelation( this_l2_item,  
+									osm_wayrelation.process_downloaded_changeset_wayrelation( this_l2_item,  
 											l1_item_type, l2_item_type, passed_changeset_number, 
 											arg_debug, arg_out_file, myPrintStream );
 									
@@ -695,7 +714,7 @@ public class Changeset1
 		
 		if ( arg_debug >= Log_Informational_2 )
 		{
-			System.out.println( "We will try and download: " + passed_number );
+			System.out.println( "We will try and download changeset: " + passed_number );
 		}
 		
 		URL url = new URL( api_path + "changeset/" + passed_number + "/download" );
