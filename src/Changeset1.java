@@ -33,8 +33,9 @@ public class Changeset1
 	final static String param_time = "-time=";
 	final static String param_dev = "-dev";
 	final static String param_debug = "-debug=";
-	final static String param_bbox = "-bbox=";		// Not passed to the API; we compare changesets in that box
-	final static String param_download = "-download=";
+	final static String param_bbox = "-bbox=";		// Not passed to the API; we compare changesets in that bounding box
+	final static String param_download_changeset = "-download_changeset=";
+	final static String param_download_nodes = "-download_nodes=";
 	final static String param_building = "-building=";
 	final static String param_overlapnodes = "-report_overlap_nodes=";
 	
@@ -48,7 +49,8 @@ public class Changeset1
 	static String arg_out_file = "";			// -output=
 	static int arg_debug = 0;					// -debug=
 	static String arg_bbox = "";				// -bbox=
-	static String arg_download = "0";			// -download
+	static String arg_download_changeset = "0";			// -download_changeset=
+	static String arg_download_nodes = "0";			// -download_nodes=
 /* ------------------------------------------------------------------------------
  * This value is used to compare the number of ways in buildings (and shops) 
  * against.  The default is 2001 (more than the maximum number of nodes in a way)
@@ -275,7 +277,7 @@ public class Changeset1
 	 */
 	private static boolean process_download_xml( Node root_node, String passed_changeset_number, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_building, boolean passed_overlapnodes )
+			String passed_building, boolean passed_overlapnodes, String passed_download_nodes )
 	{
 		boolean return_value = false;
 		
@@ -345,7 +347,7 @@ public class Changeset1
 								
 								node_overlaps = osm_node.process_download_node( passed_min_lat_string, passed_min_lon_string, 
 										passed_max_lat_string, passed_max_lon_string, 
-										this_l2_item, arg_debug );
+										this_l2_item, arg_debug, passed_download_nodes );
 								
 								item_id = osm_node.get_item_id();
 								item_user = osm_node.get_item_user();
@@ -672,20 +674,22 @@ public class Changeset1
 	 * 
 	 * @param passed_number  The changeset number to download
 	 * 
-	 * @param passed_min_lat_string  The bounding box that we're interested in - node positions will be checked against this box.
+	 * @param passed_min_lat_string  The bounding box that we're interested in - 
+	 * node positions will be checked against this box.
 	 * @param passed_min_lon_string
 	 * @param passed_max_lat_string
 	 * @param passed_max_lon_string
 	 * 
 	 * @param passed_building  The "number of nodes in a shop/building" value to worry about
 	 * 
-	 * @return returns "true" if there are nodes in the changeset that overlaps the bounding box that we passed in.
+	 * @return returns "true" if there are individual nodes (not nodes in a way or relation) 
+	 * in the changeset that overlaps the bounding box that we passed in.
 	 * 
 	 * @throws Exception
 	 */
 	private static boolean download_changeset( String passed_number, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_building, boolean passed_overlapnodes ) throws Exception
+			String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception
 	{
 		boolean return_value = false;
 		
@@ -722,7 +726,7 @@ public class Changeset1
 	    
 	    return_value = process_download_xml( AJTrootElement, passed_number, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-	    		passed_building, passed_overlapnodes );
+	    		passed_building, passed_overlapnodes, passed_download_nodes );
 	
 	    input.close();
 	    return return_value;
@@ -734,7 +738,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 	private static void process_changesets_xml( Node root_node, String passed_display_name, String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes )
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes )
 	{
 		int osm_changesets_found = 0;
 		int osm_changesets_of_interest = 0;
@@ -923,7 +927,7 @@ public class Changeset1
  * By default we don't download the changesets themselves - we only do that if explicitly requested to by the
  * user.  The "-building=X" value only makes sense if we are downloading changesets. 
  * ------------------------------------------------------------------------------------------------------------ */
-						if ( passed_download.equals( "1") )
+						if ( passed_download_changeset.equals( "1") )
 						{
 							try
 							{
@@ -933,7 +937,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 								download_changeset( id_node.getNodeValue(), 
 										passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-										passed_building, passed_overlapnodes );
+										passed_building, passed_overlapnodes, passed_download_nodes );
 							}
 							catch( Exception ex )
 							{
@@ -967,7 +971,7 @@ public class Changeset1
 								myPrintStream.println( user_node.getNodeValue() + ";" + uid_node.getNodeValue() + ";" + id_node.getNodeValue() + ";" + editor_name + ";" + editor_version + ";" + comment + ";Changeset: bbox overlaps" );
 							}
 
-							if ( passed_download.equals( "1") )
+							if ( passed_download_changeset.equals( "1") )
 							{
 								try
 								{
@@ -981,7 +985,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 									changeset_node_interest_flag = download_changeset( id_node.getNodeValue(), 
 											passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-											passed_building, passed_overlapnodes );
+											passed_building, passed_overlapnodes, passed_download_nodes );
 									
 									if ( changeset_node_interest_flag )
 									{
@@ -1053,7 +1057,7 @@ public class Changeset1
 	
 	static void process_changesets_url_common ( URL passed_url, String passed_display_name, String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception
 	{
 		if ( arg_debug >= Log_Informational_2 )
 		{
@@ -1087,7 +1091,7 @@ public class Changeset1
 	    
 	    process_changesets_xml( AJTrootElement, passed_display_name, passed_uid, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-	    		passed_download, passed_building, passed_overlapnodes );
+	    		passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	
 	    input.close();
 	}
@@ -1095,7 +1099,7 @@ public class Changeset1
 	
 	static void process_display_name_and_time( String passed_display_name, String passed_time, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1107,13 +1111,13 @@ public class Changeset1
 		
 		process_changesets_url_common( url, passed_display_name, "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building, passed_overlapnodes );
+				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
 	
 	
 	static void process_uid_and_time( String passed_uid, String passed_time, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1125,13 +1129,13 @@ public class Changeset1
 		
 		process_changesets_url_common( url, "", passed_uid, passed_min_lat_string, 
 				passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building, passed_overlapnodes );
+				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
 	
 	
 	static void process_display_name( String passed_display_name, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1143,13 +1147,13 @@ public class Changeset1
 		
 		process_changesets_url_common( url, passed_display_name, "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building, passed_overlapnodes );
+				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
 	
 	
 	static void process_uid( String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1161,13 +1165,13 @@ public class Changeset1
 		
 		process_changesets_url_common( url, "", passed_uid, 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building, passed_overlapnodes );
+				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
 	
 	
 	static void process_time( String passed_time, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
-			String passed_download, String passed_building, boolean passed_overlapnodes ) throws Exception 
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception 
 	{
 		if ( arg_debug >= Log_Low_Routine_Start )
 		{
@@ -1179,7 +1183,7 @@ public class Changeset1
 		
 		process_changesets_url_common( url, "All Users", "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-				passed_download, passed_building, passed_overlapnodes );
+				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
 	
 	
@@ -1247,7 +1251,8 @@ public class Changeset1
  * param_dev = "-dev";
  * param_debug = "-debug=";
  * param_bbox = "-bbox=";
- * param_download = "-download=";
+ * param_download_changeset = "-download_changeset=";
+ * param_download_nodes = "-download_nodes=";
  * param_building = "-building=";
  * param_overlapnodes = "-report_overlap_nodes=";
  * 
@@ -1393,16 +1398,33 @@ public class Changeset1
  * 
  * We do this if we want to look for e.g. deleted relations.
  * ------------------------------------------------------------------------------ */
-				if ( args[i].startsWith( param_download ))
+				if ( args[i].startsWith( param_download_changeset ))
 				{	
-					arg_download = args[i].substring( param_download.length() );
+					arg_download_changeset = args[i].substring( param_download_changeset.length() );
 					
 					if ( arg_debug >= Log_Informational_2 )
 					{
-						System.out.println( "arg_download: " + arg_download );
-						System.out.println( "arg_download length: " + arg_download.length() );
+						System.out.println( "arg_download_changeset: " + arg_download_changeset );
+						System.out.println( "arg_download_changeset length: " + arg_download_changeset.length() );
 					}
-				} // -download
+				} // -download_changeset
+				
+/* ------------------------------------------------------------------------------
+ * Should we download individual nodes that we are interested in?
+ * 
+ * We do this if we want to specifically look for deleted nodes within a 
+ * bounding box.
+ * ------------------------------------------------------------------------------ */
+				if ( args[i].startsWith( param_download_nodes ))
+				{	
+					arg_download_nodes = args[i].substring( param_download_nodes.length() );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "arg_download_nodes: " + arg_download_nodes );
+						System.out.println( "arg_download_nodes length: " + arg_download_nodes.length() );
+					}
+				} // -download_nodes
 				
 /* ------------------------------------------------------------------------------
  * After how many nodes should we warn about buildings?
@@ -1590,7 +1612,8 @@ public class Changeset1
 					{
 						process_time( arg_time, arg_min_lat_string, arg_min_lon_string, 
 								arg_max_lat_string, arg_max_lon_string, 
-								arg_download, arg_building, arg_overlapnodes );
+								arg_download_changeset, arg_building, 
+								arg_overlapnodes, arg_download_nodes );
 					}
 				}
 				else
@@ -1599,14 +1622,16 @@ public class Changeset1
 					{
 						process_uid( arg_uid, arg_min_lat_string, arg_min_lon_string, 
 								arg_max_lat_string, arg_max_lon_string, 
-								arg_download, arg_building, arg_overlapnodes );
+								arg_download_changeset, arg_building, 
+								arg_overlapnodes, arg_download_nodes );
 					} // no time argument passed
 					else
 					{
 						process_uid_and_time( arg_uid, arg_time, 
 								arg_min_lat_string, arg_min_lon_string, 
 								arg_max_lat_string, arg_max_lon_string, 
-								arg_download, arg_building, arg_overlapnodes );
+								arg_download_changeset, arg_building, 
+								arg_overlapnodes, arg_download_nodes );
 					}
 				}
 			} // no display_name argument passed
@@ -1617,14 +1642,16 @@ public class Changeset1
 					process_display_name( arg_display_name, 
 							arg_min_lat_string, arg_min_lon_string, 
 							arg_max_lat_string, arg_max_lon_string, 
-							arg_download, arg_building, arg_overlapnodes );
+							arg_download_changeset, arg_building, 
+							arg_overlapnodes, arg_download_nodes );
 				} // no time argument passed
 				else
 				{
 					process_display_name_and_time( arg_display_name, arg_time, 
 							arg_min_lat_string, arg_min_lon_string, 
 							arg_max_lat_string, arg_max_lon_string, 
-							arg_download, arg_building, arg_overlapnodes );
+							arg_download_changeset, arg_building, 
+							arg_overlapnodes, arg_download_nodes );
 				}
 			} // user argument passed
 		} // no "in" file
@@ -1645,7 +1672,7 @@ public class Changeset1
  * Each line in the input file can contain additional parameters.  For example,
  * one could contain:
  * 
- * -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -report_overlap_nodes=1
+ * -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download_changeset=1 -report_overlap_nodes=1
  * 
  * Other than "input", "output", "dev" and "debug", any parameter can be used in
  * an input file line in this way.  If a value is set on the command line, and
@@ -1666,7 +1693,8 @@ public class Changeset1
 				String line_min_lon_string = "";
 				String line_max_lat_string = "";
 				String line_max_lon_string = "";
-				String line_download = "";
+				String line_download_changeset = "";
+				String line_download_nodes = "";
 				String line_building = "";
 				String line_overlapnodes_string = "";
 				boolean line_overlapnodes=arg_overlapnodes;
@@ -1725,16 +1753,28 @@ public class Changeset1
 						line_bbox = arg_bbox;
 					}
 					
-					line_download     = get_line_string_param( param_download, in_line );
+					line_download_changeset     = get_line_string_param( param_download_changeset, in_line );
 					
 					if ( arg_debug >= Log_Informational_2 )
 					{
-						System.out.println( "line_download: " + line_download );
+						System.out.println( "line_download_changeset: " + line_download_changeset );
 					}
 					
-					if ( line_download.equals( "" ))
+					if ( line_download_changeset.equals( "" ))
 					{
-						line_download = arg_download;
+						line_download_changeset = arg_download_changeset;
+					}
+					
+					line_download_nodes     = get_line_string_param( param_download_nodes, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_download_nodes: " + line_download_nodes );
+					}
+					
+					if ( line_download_nodes.equals( "" ))
+					{
+						line_download_nodes = arg_download_nodes;
 					}
 					
 					line_building     = get_line_string_param( param_building, in_line );
@@ -1882,9 +1922,9 @@ public class Changeset1
 							line_max_lon_string = arg_max_lon_string;
 						}
 	
-						if ( line_download.length() == 0 )
+						if ( line_download_changeset.length() == 0 )
 						{
-							line_download = arg_download;
+							line_download_changeset = arg_download_changeset;
 						}
 	
 /* ------------------------------------------------------------------------------------------------------------
@@ -1905,14 +1945,14 @@ public class Changeset1
 								{
 									process_uid( line_uid, 
 											line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-											line_download, line_building, line_overlapnodes );
+											line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 								}
 							}
 							else
 							{
 								process_display_name( line_display_name, 
 										line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-										line_download, line_building, line_overlapnodes );
+										line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 							}
 						} // no time argument passed
 						else
@@ -1923,20 +1963,20 @@ public class Changeset1
 								{
 									process_time( line_time, 
 											line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-											line_download, line_building, line_overlapnodes );
+											line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 								}
 								else
 								{
 									process_uid_and_time( line_uid, line_time, 
 											line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-											line_download, line_building, line_overlapnodes );
+											line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 								}
 							}
 							else
 							{
 								process_display_name_and_time( line_display_name, line_time, 
 										line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
-										line_download, line_building, line_overlapnodes );
+										line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 							}
 						}
 					}

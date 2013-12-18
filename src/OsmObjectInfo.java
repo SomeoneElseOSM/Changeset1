@@ -51,14 +51,15 @@ public class OsmObjectInfo {
 	 * @param passed_max_lat_string
 	 * @param passed_max_lon_string
 	 * 
-	 * @param passed_l2_item  The XML Node in the tree that corresponds to an OSM Node that we're interested in
+	 * @param passed_l2_item  The XML Node in the tree that corresponds to an OSM Node that we're interested in.  
+	 * It might be part of a create, a modify, or a delete. 
 	 * @param passed_arg_debug
 	 * 
 	 * @return  returns "true" if this node overlaps the bounding box that we passed in.
 	 */
 	boolean process_download_node( String passed_min_lat_string, String passed_min_lon_string, 
 			String passed_max_lat_string, String passed_max_lon_string, 
-			Node passed_l2_item, int passed_arg_debug )
+			Node passed_l2_item, int passed_arg_debug, String passed_download_nodes )
 	{
 		boolean node_overlaps = false;
 		
@@ -115,7 +116,7 @@ public class OsmObjectInfo {
 				if ( lat_node == null )
 				{
 /* ------------------------------------------------------------------------------------------------------------
-* Possibly a deletion - the lat and lon of deleted nodes are not returned in the OSC
+* Possibly a deletion - the lat and lon of deleted nodes are not returned in the OSC document.
 * ------------------------------------------------------------------------------------------------------------ */
 					if ( passed_arg_debug >= Log_Informational_2 )
 					{

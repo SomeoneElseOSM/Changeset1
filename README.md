@@ -26,14 +26,14 @@ This looks for changesets by the user named `SomeoneElse` in the sepecified boun
 SomeoneElse;61942;18740137;Potlatch 2;2.3;Wragby road - updated lanes where I'd miscounted.;Changeset: bbox overlaps
 </pre>
 
-Pass a `download` parameter and it'll download changeset contents and check for things that might be iffy in there too:
+Pass a `download_changeset` parameter and it'll download changeset contents and check for things that might be iffy in there too:
 
-    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -output=example_out.txt
+    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download_changeset=1 -output=example_out.txt
 
 
-Pass a `building` parameter as well as `download` and it'll check for buildings and shops with more than a certain number of nodes.
+Pass a `building` parameter as well as `download_changeset` and it'll check for buildings and shops with more than a certain number of nodes.
 
-    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download=1 -building=10 -output=example_out.txt
+    java Changeset1 -time="2013-11-04T20:53" -debug=5 -display_name="SomeoneElse" -bbox=-2.123,52.809,-0.331,53.521 -download_changeset=1 -building=10 -output=example_out.txt
 
 This is designed to help flag landuse areas that have been changed to buildings or shops by iD users by mistake (see https://github.com/systemed/iD/issues/542).
 
@@ -41,8 +41,8 @@ This is designed to help flag landuse areas that have been changed to buildings 
 You can also group a series of checks into an input file.  Let's imagine that `example2_in.txt` contains:
 
 <pre>
--display_name="SomeoneElse_Revert" -bbox=-7,50,2,61 -download=1
--display_name="SomeoneElse"  -bbox=-2.123,52.809,-0.331,53.521 -download=1
+-display_name="SomeoneElse_Revert" -bbox=-7,50,2,61 -download_changeset=1
+-display_name="SomeoneElse"  -bbox=-2.123,52.809,-0.331,53.521 -download_changeset=1
 </pre>
 
 You can then:
