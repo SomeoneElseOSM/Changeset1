@@ -127,7 +127,7 @@ public class Changeset1
 	
 	
 	/**
-	 * check_overlap
+	 * check_bboxes_overlap
 	 * 
 	 * Checks whether two bounding boxes overlap.  Typically the first bounding box is what we're checking 
 	 * against (what the user specified that they were interested in) and the second is the bounding box
@@ -294,11 +294,11 @@ public class Changeset1
 	 * 
 	 * @return  returns "true" if there are nodes in the changeset that overlaps the bounding box that we passed in.
 	 */
-	private static boolean process_download_xml( Node root_node, String passed_changeset_number, 
+	private static boolean process_downloaded_changeset_xml( Node root_node, String passed_changeset_number, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
 			String passed_building, boolean passed_overlapnodes, String passed_download_nodes )
 	{
-		boolean return_value = false;
+		boolean changeset_nodes_overlap = false;
 		
 		if ( root_node.getNodeType() == Node.ELEMENT_NODE ) 
 		{
@@ -340,7 +340,10 @@ public class Changeset1
 					{
 						Node this_l2_item = level_2_xmlnodes.item( cntr_2 );
 						String l2_item_type = this_l2_item.getNodeName();
-						boolean node_overlaps = false;
+/* ------------------------------------------------------------------------------------------------------------
+ * l2 == "the current level 2 thing that we're dealing with - a node, way or relation.
+ * ------------------------------------------------------------------------------------------------------------ */
+						boolean l2_overlaps = false;
 						String item_id = "";
 						String item_user = "";
 						String item_uid = "";
@@ -364,9 +367,9 @@ public class Changeset1
 							{
 								OsmObjectInfo osm_node = new OsmObjectInfo();
 								
-								node_overlaps = osm_node.process_downloaded_changeset_node( passed_min_lat_string, passed_min_lon_string, 
+								l2_overlaps = osm_node.process_downloaded_changeset_node_attributes( passed_min_lat_string, passed_min_lon_string, 
 										passed_max_lat_string, passed_max_lon_string, 
-										this_l2_item, arg_debug, passed_download_nodes, api_path );
+										this_l2_item, arg_debug, passed_overlapnodes, changeset_nodes_overlap, passed_download_nodes, api_path );
 								
 								item_id = osm_node.get_item_id();
 								item_user = osm_node.get_item_user();
@@ -380,7 +383,7 @@ public class Changeset1
 								{
 									OsmObjectInfo osm_wayrelation = new OsmObjectInfo();
 									
-									osm_wayrelation.process_downloaded_changeset_wayrelation( this_l2_item,  
+									osm_wayrelation.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
 											l1_item_type, l2_item_type, passed_changeset_number, 
 											arg_debug, arg_out_file, myPrintStream );
 									
@@ -426,6 +429,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 									if ( l3_item_type.equals( "nd" ))
 									{
+										boolean way_node_overlaps = false;
 										way_nodes++;
 										
 										if ( this_l3_item.hasAttributes() )
@@ -443,7 +447,41 @@ public class Changeset1
 												{
 													System.out.println( "nd ref: " + ref_node.getNodeValue() );
 												}
-	
+
+/* ------------------------------------------------------------------------------
+ * We're processing a node within a way.  If necessary we can download it and 
+ * set "way_node_overlaps" and "l2_overlaps" based on whether it overlaps our 
+ * bbox of interest.
+ *
+ * We try and avoid making the extra API call to download the node if we can.
+ * ------------------------------------------------------------------------------ */
+												if ((  passed_download_nodes.equals( "1"   )) &&
+													( !passed_min_lat_string.equals( ""    )) &&
+													( !passed_min_lon_string.equals( ""    )) &&
+													( !passed_max_lat_string.equals( ""    )) &&
+													( !passed_max_lon_string.equals( ""    )) &&
+													( !l2_overlaps || passed_overlapnodes )) 
+													{
+														OsmObjectInfo osm_wayrelation = new OsmObjectInfo();
+		
+														try
+														{
+															way_node_overlaps = osm_wayrelation.download_node( ref_node.getNodeValue(), 
+																	passed_min_lat_string, passed_min_lon_string, 
+																	passed_max_lat_string, passed_max_lon_string, 
+																	api_path, arg_debug );
+															
+															if ( way_node_overlaps )
+															{
+																l2_overlaps = true;
+															}
+														}
+														catch( Exception ex )
+														{
+															System.out.println( "Exception downloading node: " + ref_node.getNodeValue() + ", " + ex.getMessage() );
+														}
+													}
+
 // here would go some actual processing of the nd from the OSC file
 												
 											} // nd node not null
@@ -580,11 +618,15 @@ public class Changeset1
 								}
 							} // for level 3 nodes - something like "nd", "member" or "tag".
 
-							if (( node_overlaps )  && passed_overlapnodes )
+/* ------------------------------------------------------------------------------------------------------------
+ * At this point we've processed all the child XML nodes of the "node", "way" or "relation" that we're 
+ * currently processing.
+ * ------------------------------------------------------------------------------------------------------------ */
+							if ( l2_overlaps )
 							{
-								return_value = true;
+								changeset_nodes_overlap = true;
 								
-								if ( arg_out_file != ""  )
+								if (( arg_out_file != "" ) &&  passed_overlapnodes )
 								{
 									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Node " + item_id + " (" + node_name + ") overlaps" );
 								}
@@ -685,13 +727,13 @@ public class Changeset1
 			}
 		}
 		
-		return return_value;
+		return changeset_nodes_overlap;
 	}
 
 	/**
 	 * download_changeset
 	 * 
-	 * @param passed_number  The changeset number to download
+	 * @param passed_changeset_number  The changeset number to download
 	 * 
 	 * @param passed_min_lat_string  The bounding box that we're interested in - 
 	 * node positions will be checked against this box.
@@ -706,18 +748,18 @@ public class Changeset1
 	 * 
 	 * @throws Exception
 	 */
-	private static boolean download_changeset( String passed_number, 
+	private static boolean download_changeset( String passed_changeset_number, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
 			String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception
 	{
-		boolean return_value = false;
+		boolean nodes_overlap = false;
 		
 		if ( arg_debug >= Log_Informational_2 )
 		{
-			System.out.println( "We will try and download changeset: " + passed_number );
+			System.out.println( "We will try and download changeset: " + passed_changeset_number );
 		}
 		
-		URL url = new URL( api_path + "changeset/" + passed_number + "/download" );
+		URL url = new URL( api_path + "changeset/" + passed_changeset_number + "/download" );
 		InputStreamReader input;
 		
 		URLConnection urlConn = url.openConnection();
@@ -743,18 +785,41 @@ public class Changeset1
 	    Document AJTdocument = AJTbuilder.parse( inputStream );
 	    Element AJTrootElement = AJTdocument.getDocumentElement();
 	    
-	    return_value = process_download_xml( AJTrootElement, passed_number, 
+	    nodes_overlap = process_downloaded_changeset_xml( AJTrootElement, passed_changeset_number, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 	    		passed_building, passed_overlapnodes, passed_download_nodes );
 	
 	    input.close();
-	    return return_value;
+	    return nodes_overlap;
 	}
 	
 	
-/* ------------------------------------------------------------------------------------------------------------
- * The node passed in here is the root node of the XML tree of the changesets returned in response to our query
- * ------------------------------------------------------------------------------------------------------------ */
+	/**
+	 * process_changesets_xml
+	 * 
+	 * We've made an API call for changesets (for parameters that might include "since" time and user info).  
+	 *  
+	 * @param root_node  The root node of the XML tree of the changesets returned in response to our query
+	 * 
+	 * @param passed_display_name  The current display_name that we're interested in, if any.
+	 * @param passed_uid  The current user ID that we're interested in, if any.
+	 * 
+	 * @param passed_min_lat_string  The bounding box that we want to check that a particular changeset occurs within.
+	 * @param passed_min_lon_string
+	 * @param passed_max_lat_string
+	 * @param passed_max_lon_string
+	 * 
+	 * @param passed_download_changeset  If set to "1", download the changeset to check for potential problems, such as deleted ways and relations.
+	 * 
+	 * @param passed_building  If set, the value to compare the number of nodes in a shop or building against to warn that e.g. some landuse has
+	 * been turned into a shop or building by mistake.  This parameter is only valid if passed_download_changeset is set to "1".
+	 *  
+	 * @param passed_overlapnodes  If set, we're being asked to report on each overlapping node within our bounding box.  
+	 * This parameter is only valid if passed_download_changeset is set to "1".
+	 * 
+	 * @param passed_download_nodes  If set to "1", we're being asked to download the previous version of deleted nodes to see if they have been
+	 * deleted from our bounding box.  This parameter is only valid if passed_download_changeset is set to "1".
+	 */
 	private static void process_changesets_xml( Node root_node, String passed_display_name, String passed_uid, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
 			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes )
@@ -1015,7 +1080,7 @@ public class Changeset1
 								{
 									System.out.println( "Exception downloading changeset" );
 								}
-							}
+							} // passed_download_changeset set
 							else
 							{
 /* ------------------------------------------------------------------------------
