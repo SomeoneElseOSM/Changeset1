@@ -23,15 +23,42 @@ public class OsmObjectInfo {
 	final static int Log_Low_Routine_Start = 7; // low-level routing start code
 	final static int Log_Informational_2 = 8;	// Any other informational stuff
 
-	public String item_id;
-	public String item_user;
-	public String item_uid;
+	final static byte Item_Unknown = 0;
+	final static byte Item_Node = 1;
+	final static byte Item_Way = 2;
+	final static byte Item_Relation = 3;
+
+	private byte  item_type;
+	private String item_id;
+	private String item_user;
+	private String item_uid;
+	private String node_name;
+	private boolean building_or_shop_found;
+	private boolean overlaps_bbox = false;
+	private int number_of_children;
+	private int number_of_tags;
 
 	OsmObjectInfo()
 	{
+		item_type = Item_Unknown;
 		item_id = "";
 		item_user = "";
 		item_uid = "";
+		node_name = "";
+		building_or_shop_found = false;
+		overlaps_bbox = false;
+		number_of_children = 0;
+		number_of_tags = 0;
+	}
+
+	byte get_item_type()
+	{
+		return item_type;
+	}
+
+	void set_item_type( byte passed_item_type )
+	{
+		item_type = passed_item_type;
 	}
 
 	String get_item_id()
@@ -49,11 +76,72 @@ public class OsmObjectInfo {
 		return item_uid;
 	}
 
+	String get_node_name()
+	{
+		return node_name;
+	}
 	
+	void set_node_name( String passed_node_name )
+	{
+		node_name = passed_node_name;
+	}
+
+	boolean get_building_or_shop_found()
+	{
+		return building_or_shop_found;
+	}
+	
+	void set_building_or_shop_found( boolean passed_building_or_shop_found )
+	{
+		building_or_shop_found = passed_building_or_shop_found;
+	}
+
+	boolean get_overlaps_bbox()
+	{
+		return overlaps_bbox;
+	}
+	
+	void set_overlaps_bbox( boolean passed_overlaps_bbox )
+	{
+		overlaps_bbox = passed_overlaps_bbox;
+	}
+	
+	int get_number_of_children()
+	{
+		return number_of_children;
+	}
+	
+	void inc_number_of_children()
+	{
+		number_of_children++;
+	}
+
+//qqq
+//	void set_number_of_children( int passed_number_of_children )
+//	{
+//		number_of_children = passed_number_of_children;
+//	}
+
+	int get_number_of_tags()
+	{
+		return number_of_tags;
+	}
+	
+	void inc_number_of_tags()
+	{
+		number_of_tags++;
+	}
+
+//qqq
+//	void set_number_of_tags( int passed_number_of_tags )
+//	{
+//		number_of_tags = passed_number_of_tags;
+//	}
+
 	/**
 	 * download_node
 	 * 
-	 * Download a SPECIFIC version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
+	 * Helper method to download a SPECIFIC version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
 	 * If we haven't got a bounding box we shouldn't have got this far.
 	 * 
 	 * @param passed_node_id  The node ID
@@ -119,7 +207,7 @@ public class OsmObjectInfo {
 	/**
 	 * download_node
 	 * 
-	 * Download the LATEST version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
+	 * Helper method to download the LATEST version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
 	 * If we haven't got a bounding box we shouldn't have got this far.
 	 * 
 	 * @param passed_node_id  The node ID
@@ -195,7 +283,7 @@ public class OsmObjectInfo {
 	 *  
 	 * @return  Returns true if within our bounding box, false if not or if something goes wrong.
 	 */
-	private static boolean process_node_xml( Node root_node, 
+	private boolean process_node_xml( Node root_node, 
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
 			int passed_arg_debug )
 	{
@@ -281,7 +369,7 @@ public class OsmObjectInfo {
 	}
 	
 
-	static boolean check_overlap( String passed_min_lat_string, String passed_min_lon_string, 
+	private boolean check_overlap( String passed_min_lat_string, String passed_min_lon_string, 
 			String passed_max_lat_string, String passed_max_lon_string, 
 			Node id_node, Node lat_node, Node lon_node )
 	{
@@ -355,7 +443,7 @@ public class OsmObjectInfo {
 	 * 
 	 * @return  returns "true" if this node overlaps the bounding box that we passed in.
 	 */
-	boolean process_downloaded_changeset_node_attributes( String passed_min_lat_string, String passed_min_lon_string, 
+	void process_downloaded_changeset_node_attributes( String passed_min_lat_string, String passed_min_lon_string, 
 			String passed_max_lat_string, String passed_max_lon_string, 
 			Node passed_l2_item, int passed_arg_debug, boolean passed_overlapnodes, boolean nodes_overlap, String passed_download_nodes, String passed_api_path )
 	{
@@ -532,7 +620,7 @@ public class OsmObjectInfo {
 			} // id node not null
 		} // node attributes
 		
-		return node_overlaps;
+		overlaps_bbox = node_overlaps;
 	}
 	
 	
@@ -553,7 +641,7 @@ public class OsmObjectInfo {
 	 * @param passed_myPrintStream
 	 */
 	void process_downloaded_changeset_wayrelation_attributes( Node passed_l2_item, 
-			String passed_l1_item_type, String passed_l2_item_type, String passed_changeset_number, 
+			String passed_l1_item_type, String passed_changeset_number, 
 			int passed_arg_debug, String passed_arg_out_file, PrintStream passed_myPrintStream )
 	{
 		if ( passed_l2_item.hasAttributes() )
@@ -601,12 +689,12 @@ public class OsmObjectInfo {
 				{
 					if ( passed_l1_item_type.equals( "delete"   ))
 					{
-						if ( passed_l2_item_type.equals( "way" ))
+						if ( get_item_type() == Item_Way )
 						{
 							passed_myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + id_node.getNodeValue() + " deleted" );
 						}
 
-						if ( passed_l2_item_type.equals( "relation" ))
+						if ( get_item_type() == Item_Relation )
 						{
 							passed_myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Relation " + id_node.getNodeValue() + " deleted" );
 						}

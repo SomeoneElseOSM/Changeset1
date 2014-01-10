@@ -26,6 +26,11 @@ public class Changeset1
 	final static int Log_Low_Routine_Start = 7; // low-level routing start code
 	final static int Log_Informational_2 = 8;	// Any other informational stuff
 
+	final static byte Item_Unknown = 0;
+	final static byte Item_Node = 1;
+	final static byte Item_Way = 2;
+	final static byte Item_Relation = 3;
+	
 	final static String param_input = "-input=";
 	final static String param_output = "-output=";
 	final static String param_display_name = "-display_name=";
@@ -56,7 +61,7 @@ public class Changeset1
  * against.  The default is 2001 (more than the maximum number of nodes in a way)
  * so by default we won't flag any potentially "created by mistake" buildings.
  * 
- * The source of these erronous buildings is iD issue 542.  New mappers click in
+ * The source of these erroneous buildings is iD issue 542.  New mappers click in
  * a landuse area and set the details at the left, and then save, not realising
  * that they have changed the landuse to a building.
  * ------------------------------------------------------------------------------ */
@@ -346,14 +351,8 @@ public class Changeset1
 						Node this_l2_item = level_2_xmlnodes.item( cntr_2 );
 						String l2_item_type = this_l2_item.getNodeName();
 /* ------------------------------------------------------------------------------------------------------------
- * l2_item_type == "the current level 2 thing that we're dealing with" - a node, way or relation.
+ * l2_item_type == "the current level 2 thing that we're dealing with" - expected to be a node, way or relation.
  * ------------------------------------------------------------------------------------------------------------ */
-						boolean l2_overlaps = false;
-						String item_id = "";
-						String item_user = "";
-						String item_uid = "";
-						String node_name = "";
-						boolean building_or_shop_found = false;
 
 /* ------------------------------------------------------------------------------------------------------------
  * We're expecting "node", "way" or "relation" here
@@ -366,51 +365,54 @@ public class Changeset1
 							}
 
 /* ------------------------------------------------------------------------------------------------------------
+ * Create an object in which to store details of our current node, way or relation.
+ * ------------------------------------------------------------------------------------------------------------ */
+							OsmObjectInfo osmObject = new OsmObjectInfo();
+
+/* ------------------------------------------------------------------------------------------------------------
  * Look at attributes first.  These vary depending on whether we've got a node or a way or relation.
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( l2_item_type.equals( "node" ))
 							{
-								OsmObjectInfo osm_node = new OsmObjectInfo();
+								osmObject.set_item_type( Item_Node );
 								
-								l2_overlaps = osm_node.process_downloaded_changeset_node_attributes( passed_min_lat_string, passed_min_lon_string, 
+								osmObject.process_downloaded_changeset_node_attributes( passed_min_lat_string, passed_min_lon_string, 
 										passed_max_lat_string, passed_max_lon_string, 
 										this_l2_item, arg_debug, passed_overlapnodes, changeset_nodes_overlap, passed_download_nodes, api_path );
-								
-								item_id = osm_node.get_item_id();
-								item_user = osm_node.get_item_user();
-								item_uid = osm_node.get_item_uid();
 								
 							} //node
 							else
 							{
-								if (( l2_item_type.equals( "way"      )) ||
-								    ( l2_item_type.equals( "relation" )))
+								if ( l2_item_type.equals( "way" ))
 								{
-									OsmObjectInfo osm_wayrelation = new OsmObjectInfo();
+									osmObject.set_item_type( Item_Way );
 									
-									osm_wayrelation.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
-											l1_item_type, l2_item_type, passed_changeset_number, 
+									osmObject.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
+											l1_item_type, passed_changeset_number, 
 											arg_debug, arg_out_file, myPrintStream );
-									
-									item_id = osm_wayrelation.get_item_id();
-									item_user = osm_wayrelation.get_item_user();
-									item_uid = osm_wayrelation.get_item_uid();
-
-								} // way or relation
+								}
 								else
 								{
-									System.out.println( "Unexpected l2_item_type: " + l2_item_type );
-								} // unexpected item type
-							} // !node
+									if ( l2_item_type.equals( "relation" ))
+									{
+										osmObject.set_item_type( Item_Relation );
+										
+										osmObject.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
+												l1_item_type, passed_changeset_number, 
+												arg_debug, arg_out_file, myPrintStream );
+									} // relation
+									else
+									{
+										System.out.println( "Unexpected l2_item_type: " + l2_item_type );
+									}
+								} // !way
+							} //!node
 
 /* ------------------------------------------------------------------------------------------------------------
  * We've looked at the attributes.  Now let's look at the other tags
  * ------------------------------------------------------------------------------------------------------------ */
 							NodeList level_3_xmlnodes = this_l2_item.getChildNodes();
 							int num_l3_xmlnodes = level_3_xmlnodes.getLength();
-							int relation_members = 0;
-							int way_nodes = 0;
-							int item_tags = 0;
 			
 							if ( arg_debug >= Log_Informational_2 )
 							{
@@ -423,7 +425,8 @@ public class Changeset1
 								String l3_item_type = this_l3_item.getNodeName();
 
 /* ------------------------------------------------------------------------------------------------------------
- * Depending on l2_item_type ("node", "way" or "relation"), we're expecting "nd", "member" or "tag" here.
+ * Depending on whether we're dealing with a "node", "way" or "relation", 
+ * we're expecting "nd", "member" or "tag" here.
  * ------------------------------------------------------------------------------------------------------------ */
 								if ( !l3_item_type.equals( "#text" ))
 								{
@@ -438,7 +441,7 @@ public class Changeset1
 									if ( l3_item_type.equals( "nd" ))
 									{
 										boolean way_node_overlaps = false;
-										way_nodes++;
+										osmObject.inc_number_of_children();
 										
 /* ------------------------------------------------------------------------------------------------------------
  * We'd expect an "nd" to at least have the attribute "ref".
@@ -461,8 +464,8 @@ public class Changeset1
 
 /* ------------------------------------------------------------------------------
  * We're processing a node within a way.  If necessary we can download it and 
- * set "way_node_overlaps" and "l2_overlaps" based on whether it overlaps our 
- * bbox of interest.
+ * set "way_node_overlaps" and "overlaps_bbox" for the parent object based on  
+ * whether it overlaps our bbox of interest.
  *
  * We try and avoid making the extra API call to download the node if we can.
  * ------------------------------------------------------------------------------ */
@@ -471,7 +474,7 @@ public class Changeset1
 													( !passed_min_lon_string.equals( ""    )) &&
 													( !passed_max_lat_string.equals( ""    )) &&
 													( !passed_max_lon_string.equals( ""    )) &&
-													( !l2_overlaps || passed_overlapnodes )) 
+													( !osmObject.get_overlaps_bbox() || passed_overlapnodes )) 
 													{
 														OsmObjectInfo osm_wayrelation = new OsmObjectInfo();
 		
@@ -484,7 +487,7 @@ public class Changeset1
 															
 															if ( way_node_overlaps )
 															{
-																l2_overlaps = true;
+																osmObject.set_overlaps_bbox( true );
 															}
 														}
 														catch( Exception ex )
@@ -502,7 +505,7 @@ public class Changeset1
 									{ // !nd
 										if ( l3_item_type.equals( "tag" ))
 										{
-											item_tags++;
+											osmObject.inc_number_of_tags();
 											
 											if ( this_l3_item.hasAttributes() )
 											{
@@ -543,17 +546,18 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 														if ( key_node.getNodeValue().equals( "name" ))
 														{
-															node_name = value_node.getNodeValue();
+															osmObject.set_node_name( value_node.getNodeValue() );
 														}
 														else
 														{
 /* ------------------------------------------------------------------------------------------------------------
  * If we've got a key that a novice iD user might have turned a residential area into, store that fact - we'll
- * look at the number of nodes in at later. 
+ * look at the number of nodes in at later.  Currently we're just looking for "building" or "shop", but that
+ * might expand later.
  * ------------------------------------------------------------------------------------------------------------ */
 															if ( key_node.getNodeValue().equals( "building" ) || key_node.getNodeValue().equals( "shop" ))
 															{
-																building_or_shop_found = true;
+																osmObject.set_building_or_shop_found( true );
 															}
 															
 // here would go any other processing of the tag / value from the OSC file
@@ -570,7 +574,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 											if ( l3_item_type.equals( "member" ))
 											{
-												relation_members++;
+												osmObject.inc_number_of_children();
 												
 												if ( this_l3_item.hasAttributes() )
 												{
@@ -643,13 +647,13 @@ public class Changeset1
  * At this point we've processed all the child XML nodes of the "node", "way" or "relation" that we're 
  * currently processing.
  * ------------------------------------------------------------------------------------------------------------ */
-							if ( l2_overlaps )
+							if ( osmObject.get_overlaps_bbox() )
 							{
 								changeset_nodes_overlap = true;
 								
 								if (( arg_out_file != "" ) &&  passed_overlapnodes )
 								{
-									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Node " + item_id + " (" + node_name + ") overlaps" );
+									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Node " + osmObject.get_item_id() + " (" + osmObject.get_node_name() + ") overlaps" );
 								}
 							}
 
@@ -658,19 +662,19 @@ public class Changeset1
  * Deleted relations are reported elsewhere - don't also report that they have no members. 
  * ------------------------------------------------------------------------------------------------------------ */
 
-							if ( l2_item_type.equals( "relation" ))
+							if ( osmObject.get_item_type() == Item_Relation )
 							{
 								if ( arg_debug >= Log_Informational_2 )
 								{
-									System.out.println( "Members: " + relation_members );
+									System.out.println( "Members: " + osmObject.get_number_of_children() );
 								}
 
-								if ( relation_members == 0 )
+								if ( osmObject.get_number_of_children() == 0 )
 								{
 									if (( arg_out_file != ""                ) &&
 										( !l1_item_type.equals( "delete"   )))
 									{
-										myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Relation " + item_id + " has no members" );
+										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + osmObject.get_item_id()  + " has no members" );
 									}
 								}
 							}
@@ -679,40 +683,40 @@ public class Changeset1
  * Deleted ways are reported elsewhere - don't also report that they have no members.
  * We do report on created or modified ways with no nodes, though.  We also report on single-node ways. 
  * ------------------------------------------------------------------------------------------------------------ */
-							if ( l2_item_type.equals( "way" ))
+							if ( osmObject.get_item_type() == Item_Way )
 							{
 								if ( arg_debug >= Log_Informational_2 )
 								{
-									System.out.println( "Nodes: " + way_nodes );
+									System.out.println( "Nodes: " + osmObject.get_number_of_children() );
 								}
 								
-								if ( way_nodes == 0 )
+								if ( osmObject.get_number_of_children() == 0 )
 								{
 									if (( arg_out_file != ""                ) &&
 										( !l1_item_type.equals( "delete"   )))
 									{
-										myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + item_id + " has no nodes" );
+										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " has no nodes" );
 									}
 								}
 								
-								if ( way_nodes == 1 )
+								if ( osmObject.get_number_of_children() == 1 )
 								{
 									if ( arg_out_file != ""  )
 									{
-										myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + item_id + " has only 1 node" );
+										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " has only 1 node" );
 									}
 								}
 								
 								try
 								{
-									if ( building_or_shop_found && ( way_nodes > Integer.valueOf( passed_building )))
+									if ( osmObject.get_building_or_shop_found() && ( osmObject.get_number_of_children() > Integer.valueOf( passed_building )))
 									{
-										myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + item_id + " is a huge building or shop" );
+										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " is a huge building or shop" );
 									}
 								}
 								catch( Exception ex )
 								{
-									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + item_id + " - error evaluating way nodes: " + ex.getMessage() );
+									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " - error evaluating way nodes: " + ex.getMessage() );
 								}
 							} // way
 
@@ -725,21 +729,21 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( arg_debug >= Log_Informational_2 )
 							{
-								System.out.println( "Tags: " + item_tags );
+								System.out.println( "Tags: " + osmObject.get_number_of_tags() );
 							}
 
-							if (( arg_out_file != ""                ) &&
-								( !l1_item_type.equals( "delete"   )) &&
-								( !l2_item_type.equals( "node"     )) &&
-								( item_tags == 0                    ))
+							if (( arg_out_file != ""                     ) &&
+								( !l1_item_type.equals( "delete"        )) &&
+								( osmObject.get_item_type() != Item_Node ) &&
+								( osmObject.get_number_of_tags() == 0         ))
 							{
-								if ( l2_item_type.equals( "way" ))
+								if ( osmObject.get_item_type() == Item_Way )
 								{
-									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + item_id + " currently has no tags" );
+									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " currently has no tags" );
 								}
 								else
 								{
-									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Relation " + item_id + " currently has no tags" );
+									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + osmObject.get_item_id()  + " currently has no tags" );
 								}
 							}
 						} // l2 not #text
