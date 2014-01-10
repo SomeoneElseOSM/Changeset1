@@ -53,7 +53,7 @@ public class OsmObjectInfo {
 	/**
 	 * download_node
 	 * 
-	 * Download a specific version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
+	 * Download a SPECIFIC version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
 	 * If we haven't got a bounding box we shouldn't have got this far.
 	 * 
 	 * @param passed_node_id  The node ID
@@ -119,7 +119,7 @@ public class OsmObjectInfo {
 	/**
 	 * download_node
 	 * 
-	 * Download the latest version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
+	 * Download the LATEST version of a specific node from the API, and compare its lat and lon with the bounding box that we're interested in.
 	 * If we haven't got a bounding box we shouldn't have got this far.
 	 * 
 	 * @param passed_node_id  The node ID

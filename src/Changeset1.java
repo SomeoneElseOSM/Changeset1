@@ -300,6 +300,11 @@ public class Changeset1
 	{
 		boolean changeset_nodes_overlap = false;
 		
+/* ------------------------------------------------------------------------------
+ * For an example of the sort of XML that may be being processed here look at 
+ * any changeset osmChange XML, such as
+ * http://api06.dev.openstreetmap.org/api/0.6/changeset/37228/download
+ * ------------------------------------------------------------------------------ */
 		if ( root_node.getNodeType() == Node.ELEMENT_NODE ) 
 		{
 			NodeList level_1_xmlnodes = root_node.getChildNodes();
@@ -311,7 +316,7 @@ public class Changeset1
 			}
 	
 /* ------------------------------------------------------------------------------------------------------------
- * Iterate through the L1 nodes
+ * Iterate through the level 1 nodes
  * ------------------------------------------------------------------------------------------------------------ */
 			for ( int cntr_1 = 0; cntr_1 < num_l1_xmlnodes; ++cntr_1 ) 
 			{
@@ -341,7 +346,7 @@ public class Changeset1
 						Node this_l2_item = level_2_xmlnodes.item( cntr_2 );
 						String l2_item_type = this_l2_item.getNodeName();
 /* ------------------------------------------------------------------------------------------------------------
- * l2 == "the current level 2 thing that we're dealing with - a node, way or relation.
+ * l2_item_type == "the current level 2 thing that we're dealing with" - a node, way or relation.
  * ------------------------------------------------------------------------------------------------------------ */
 						boolean l2_overlaps = false;
 						String item_id = "";
@@ -398,6 +403,9 @@ public class Changeset1
 								} // unexpected item type
 							} // !node
 
+/* ------------------------------------------------------------------------------------------------------------
+ * We've looked at the attributes.  Now let's look at the other tags
+ * ------------------------------------------------------------------------------------------------------------ */
 							NodeList level_3_xmlnodes = this_l2_item.getChildNodes();
 							int num_l3_xmlnodes = level_3_xmlnodes.getLength();
 							int relation_members = 0;
@@ -432,6 +440,9 @@ public class Changeset1
 										boolean way_node_overlaps = false;
 										way_nodes++;
 										
+/* ------------------------------------------------------------------------------------------------------------
+ * We'd expect an "nd" to at least have the attribute "ref".
+ * ------------------------------------------------------------------------------------------------------------ */
 										if ( this_l3_item.hasAttributes() )
 										{
 											NamedNodeMap item_attributes = this_l3_item.getAttributes();
@@ -485,10 +496,10 @@ public class Changeset1
 // here would go some actual processing of the nd from the OSC file
 												
 											} // nd node not null
-										} // nd attributes
+										} // nd has attributes
 									} // nd
 									else
-									{
+									{ // !nd
 										if ( l3_item_type.equals( "tag" ))
 										{
 											item_tags++;
@@ -507,7 +518,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 												}
 												else
-												{
+												{ // we have at least a key
 													if ( arg_debug >= Log_Informational_2 )
 													{
 														System.out.println( "tag: " + key_node.getNodeValue() );
@@ -521,18 +532,25 @@ public class Changeset1
 														System.out.println( "Download tag/value processing: No value found" );
 													}
 													else
-													{
+													{ // we have both a key and a value
 														if ( arg_debug >= Log_Informational_2 )
 														{
 															System.out.println( "value: " + value_node.getNodeValue() );
 														}
 		
+/* ------------------------------------------------------------------------------------------------------------
+ * Store the value of the key "name" if it exists as we'll used it for reporting later. 
+ * ------------------------------------------------------------------------------------------------------------ */
 														if ( key_node.getNodeValue().equals( "name" ))
 														{
 															node_name = value_node.getNodeValue();
 														}
 														else
 														{
+/* ------------------------------------------------------------------------------------------------------------
+ * If we've got a key that a novice iD user might have turned a residential area into, store that fact - we'll
+ * look at the number of nodes in at later. 
+ * ------------------------------------------------------------------------------------------------------------ */
 															if ( key_node.getNodeValue().equals( "building" ) || key_node.getNodeValue().equals( "shop" ))
 															{
 																building_or_shop_found = true;
@@ -541,12 +559,15 @@ public class Changeset1
 // here would go any other processing of the tag / value from the OSC file
 																													
 														}
-													}
+													} // both a key and a value
 												} // key node not null
-											} // tag attributes
+											} // tag has attributes
 										} // tag
 										else
-										{
+										{ // !nd and !tag
+/* ------------------------------------------------------------------------------------------------------------
+ * Only relations have "member"s 
+ * ------------------------------------------------------------------------------------------------------------ */
 											if ( l3_item_type.equals( "member" ))
 											{
 												relation_members++;
@@ -603,7 +624,7 @@ public class Changeset1
 																	System.out.println( "role: " + role_node.getNodeValue() );
 																}
 																
-// here would go some actual processing of the type / ref / role  from the OSC file
+// here would go some actual processing of the type / ref / role  from the OSC file.  There's nothing here yet.
 															}
 														}
 													} // type node not null
@@ -615,7 +636,7 @@ public class Changeset1
 											}
 										} // !tag
 									} // !nd
-								}
+								} // l3 item not #text
 							} // for level 3 nodes - something like "nd", "member" or "tag".
 
 /* ------------------------------------------------------------------------------------------------------------
@@ -656,7 +677,7 @@ public class Changeset1
 
 /* ------------------------------------------------------------------------------------------------------------
  * Deleted ways are reported elsewhere - don't also report that they have no members.
- * We do report on single-node ways though. 
+ * We do report on created or modified ways with no nodes, though.  We also report on single-node ways. 
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( l2_item_type.equals( "way" ))
 							{
@@ -693,7 +714,7 @@ public class Changeset1
 								{
 									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + item_id + " - error evaluating way nodes: " + ex.getMessage() );
 								}
-							}
+							} // way
 
 /* ------------------------------------------------------------------------------------------------------------
  * Deleted items are expected to have no tags; likewise nodes probably won't.
@@ -721,11 +742,11 @@ public class Changeset1
 									myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Relation " + item_id + " currently has no tags" );
 								}
 							}
-						}
+						} // l2 not #text
 					} // for l2 XML nodes (nodes, ways and relations)
 				}
-			}
-		}
+			} // l1 not #text
+		} // root node in the XML is an element
 		
 		return changeset_nodes_overlap;
 	}
