@@ -28,8 +28,7 @@ public class OsmObjectInfo {
 	final static byte Item_Way = 2;
 	final static byte Item_Relation = 3;
 
-	private byte  item_type;
-	private String item_id;
+	OsmObjectKey osmObjectKey;
 	private String item_user;
 	private String item_uid;
 	private String node_name;
@@ -40,8 +39,7 @@ public class OsmObjectInfo {
 
 	OsmObjectInfo()
 	{
-		item_type = Item_Unknown;
-		item_id = "";
+		osmObjectKey = new OsmObjectKey( Item_Unknown, "" );
 		item_user = "";
 		item_uid = "";
 		node_name = "";
@@ -53,17 +51,22 @@ public class OsmObjectInfo {
 
 	byte get_item_type()
 	{
-		return item_type;
+		return osmObjectKey.get_item_type();
 	}
 
 	void set_item_type( byte passed_item_type )
 	{
-		item_type = passed_item_type;
+		osmObjectKey.set_item_type( passed_item_type );
 	}
 
 	String get_item_id()
 	{
-		return item_id;
+		return osmObjectKey.get_item_id();
+	}
+
+	void set_item_id( String passed_item_id )
+	{
+		osmObjectKey.set_item_id( passed_item_id );
 	}
 
 	String get_item_user()
@@ -465,7 +468,7 @@ public class OsmObjectInfo {
 			}
 			else
 			{
-				item_id = id_node.getNodeValue();
+				osmObjectKey.set_item_id( id_node.getNodeValue() );
 				
 				if ( passed_arg_debug >= Log_Informational_2 )
 				{
@@ -547,7 +550,7 @@ public class OsmObjectInfo {
 								
 								try
 								{
-									node_overlaps = download_node( item_id, previous_version, 
+									node_overlaps = download_node( osmObjectKey.get_item_id(), previous_version, 
 											passed_min_lat_string, passed_min_lon_string, 
 											passed_max_lat_string, passed_max_lon_string, 
 											passed_api_path, passed_arg_debug );
@@ -662,7 +665,7 @@ public class OsmObjectInfo {
 					System.out.println( "id: " + id_node.getNodeValue() );
 				}
 
-				item_id = id_node.getNodeValue();
+				osmObjectKey.set_item_id( id_node.getNodeValue() );
 				
 				if ( user_node == null )
 				{
