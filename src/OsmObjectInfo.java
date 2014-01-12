@@ -29,24 +29,12 @@ public class OsmObjectInfo {
 	final static byte Item_Relation = 3;
 
 	OsmObjectKey osmObjectKey;
-	private String item_user;
-	private String item_uid;
-	private String node_name;
-	private boolean building_or_shop_found;
-	private boolean overlaps_bbox = false;
-	private int number_of_children;
-	private int number_of_tags;
+	OsmObjectDetails osmObjectDetails;
 
 	OsmObjectInfo()
 	{
 		osmObjectKey = new OsmObjectKey( Item_Unknown, "" );
-		item_user = "";
-		item_uid = "";
-		node_name = "";
-		building_or_shop_found = false;
-		overlaps_bbox = false;
-		number_of_children = 0;
-		number_of_tags = 0;
+		osmObjectDetails = new OsmObjectDetails( "", "", "", false, false, 0, 0 );
 	}
 
 	byte get_item_type()
@@ -71,74 +59,84 @@ public class OsmObjectInfo {
 
 	String get_item_user()
 	{
-		return item_user;
+		return osmObjectDetails.get_item_user();
+	}
+
+	void set_item_user( String passed_item_user )
+	{
+		osmObjectDetails.set_item_user( passed_item_user );
 	}
 
 	String get_item_uid()
 	{
-		return item_uid;
+		return osmObjectDetails.get_item_uid();
+	}
+
+	void set_item_uid( String passed_item_uid )
+	{
+		osmObjectDetails.set_item_uid( passed_item_uid );
 	}
 
 	String get_node_name()
 	{
-		return node_name;
+		return osmObjectDetails.get_node_name();
 	}
 	
 	void set_node_name( String passed_node_name )
 	{
-		node_name = passed_node_name;
+		osmObjectDetails.set_node_name( passed_node_name );
 	}
 
 	boolean get_building_or_shop_found()
 	{
-		return building_or_shop_found;
+		return osmObjectDetails.get_building_or_shop_found();
 	}
 	
 	void set_building_or_shop_found( boolean passed_building_or_shop_found )
 	{
-		building_or_shop_found = passed_building_or_shop_found;
+		osmObjectDetails.set_building_or_shop_found( passed_building_or_shop_found );
 	}
 
 	boolean get_overlaps_bbox()
 	{
-		return overlaps_bbox;
+		return osmObjectDetails.get_overlaps_bbox();
 	}
 	
 	void set_overlaps_bbox( boolean passed_overlaps_bbox )
 	{
-		overlaps_bbox = passed_overlaps_bbox;
+		osmObjectDetails.set_overlaps_bbox( passed_overlaps_bbox );
 	}
 	
 	int get_number_of_children()
 	{
-		return number_of_children;
+		return osmObjectDetails.get_number_of_children();
 	}
 	
 	void inc_number_of_children()
 	{
-		number_of_children++;
+		osmObjectDetails.inc_number_of_children();
 	}
 
 //qqq
 //	void set_number_of_children( int passed_number_of_children )
 //	{
-//		number_of_children = passed_number_of_children;
+//		osmObjectDetails.set_number_of_children( passed_number_of_children );
 //	}
 
 	int get_number_of_tags()
 	{
-		return number_of_tags;
+		return osmObjectDetails.get_number_of_tags();
 	}
 	
 	void inc_number_of_tags()
 	{
-		number_of_tags++;
+		osmObjectDetails.inc_number_of_tags();
 	}
 
 //qqq
 //	void set_number_of_tags( int passed_number_of_tags )
 //	{
-//		number_of_tags = passed_number_of_tags;
+//		osmObjectDetails.set_number_of_tags( passed_number_of_tags );
 //	}
 
 	/**
@@ -481,7 +479,7 @@ public class OsmObjectInfo {
 				}
 				else
 				{
-					item_user = user_node.getNodeValue();
+					set_item_user( user_node.getNodeValue() );
 					
 					if ( passed_arg_debug >= Log_Informational_2 )
 					{
@@ -495,7 +493,7 @@ public class OsmObjectInfo {
 				}
 				else
 				{
-					item_uid = uid_node.getNodeValue();
+					set_item_uid( uid_node.getNodeValue() );
 					
 					if ( passed_arg_debug >= Log_Informational_2 )
 					{
@@ -623,7 +621,7 @@ public class OsmObjectInfo {
 			} // id node not null
 		} // node attributes
 		
-		overlaps_bbox = node_overlaps;
+		set_overlaps_bbox(  node_overlaps );
 	}
 	
 	
@@ -673,7 +671,7 @@ public class OsmObjectInfo {
 				}
 				else
 				{
-					item_user = user_node.getNodeValue();
+					set_item_user( user_node.getNodeValue() );
 				}
 				
 				if ( uid_node == null )
@@ -682,7 +680,7 @@ public class OsmObjectInfo {
 				}
 				else
 				{
-					item_uid = uid_node.getNodeValue();
+					set_item_uid( uid_node.getNodeValue() );
 				}
 				
 /* ------------------------------------------------------------------------------------------------------------
@@ -694,12 +692,12 @@ public class OsmObjectInfo {
 					{
 						if ( get_item_type() == Item_Way )
 						{
-							passed_myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Way " + id_node.getNodeValue() + " deleted" );
+							passed_myPrintStream.println( get_item_user() + ";" + get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + id_node.getNodeValue() + " deleted" );
 						}
 
 						if ( get_item_type() == Item_Relation )
 						{
-							passed_myPrintStream.println( item_user + ";" + item_uid + ";" + passed_changeset_number + ";;;;Relation " + id_node.getNodeValue() + " deleted" );
+							passed_myPrintStream.println( get_item_user() + ";" + get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + id_node.getNodeValue() + " deleted" );
 						}
 					}
 				}
