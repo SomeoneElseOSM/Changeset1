@@ -12,37 +12,27 @@ import org.junit.Test;
  */
 public class TestOsmObjectList 
 {
-	final static byte Item_Unknown = 0;
-	final static byte Item_Node = 1;
-	final static byte Item_Way = 2;
-	final static byte Item_Relation = 3;
-
-	final static byte Action_Unknown = 0;
-	final static byte Action_Create = 1;
-	final static byte Action_Modify = 2;
-	final static byte Action_Delete = 3;
-
 	@Test
 	public void testKeyEquals() 
 	{
-		OsmObjectKey osmObjectKey1 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectKey osmObjectKey2 = new OsmObjectKey( Item_Node, "1" );
+		OsmObjectKey osmObjectKey1 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectKey osmObjectKey2 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
 
 		assertTrue( osmObjectKey1.equals( osmObjectKey2 ) );
 	}
 	@Test
 	public void testKeyNEquals1() 
 	{
-		OsmObjectKey osmObjectKey1 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectKey osmObjectKey2 = new OsmObjectKey( Item_Node, "2" );
+		OsmObjectKey osmObjectKey1 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectKey osmObjectKey2 = new OsmObjectKey( OsmObjectKey.Item_Node, "2" );
 
 		assertFalse( osmObjectKey1.equals( osmObjectKey2 ) );
 	}
 	@Test
 	public void testKeyNEquals2() 
 	{
-		OsmObjectKey osmObjectKey1 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectKey osmObjectKey2 = new OsmObjectKey( Item_Way, "1" );
+		OsmObjectKey osmObjectKey1 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectKey osmObjectKey2 = new OsmObjectKey( OsmObjectKey.Item_Way, "1" );
 
 		assertFalse( osmObjectKey1.equals( osmObjectKey2 ) );
 	}
@@ -59,8 +49,8 @@ public class TestOsmObjectList
 	{
 		OsmObjectList osmObjectList = new OsmObjectList();
 		
-		OsmObjectKey osmObjectKey = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectDetails osmObjectDetails = new OsmObjectDetails( "user", "uid", "name", false, false,  0, 0, Action_Unknown );
+		OsmObjectKey osmObjectKey = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectDetails osmObjectDetails = new OsmObjectDetails( "user", "uid", "name", false, false,  0, 0, OsmObjectDetails.Action_Unknown );
 		OsmObjectInfo osmObjectInfo = new OsmObjectInfo( osmObjectKey, osmObjectDetails );
 		
 		osmObjectList.add( osmObjectInfo.get_osmObjectKey(), osmObjectInfo.get_osmObjectDetails() );
@@ -72,15 +62,15 @@ public class TestOsmObjectList
 	{
 		OsmObjectList osmObjectList = new OsmObjectList();
 		
-		OsmObjectKey osmObjectKey = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectDetails osmObjectDetails = new OsmObjectDetails( "user", "uid", "name", false, false,  0, 0, Action_Unknown );
+		OsmObjectKey osmObjectKey = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectDetails osmObjectDetails = new OsmObjectDetails( "user", "uid", "name", false, false,  0, 0, OsmObjectDetails.Action_Unknown );
 		OsmObjectInfo osmObjectInfo1 = new OsmObjectInfo( osmObjectKey, osmObjectDetails );
 		
 		osmObjectList.add( osmObjectInfo1.get_osmObjectKey(), osmObjectInfo1.get_osmObjectDetails() );
 
 		OsmObjectInfo osmObjectInfo2 = osmObjectList.get(0);
 		
-		assertTrue( osmObjectInfo2.get_osmObjectKey().get_item_type() == Item_Node );
+		assertTrue( osmObjectInfo2.get_osmObjectKey().get_item_type() == OsmObjectKey.Item_Node );
 		assertTrue( osmObjectInfo2.get_osmObjectKey().get_item_id().equals( "1" ));
 		
 		assertTrue( osmObjectInfo2.get_osmObjectDetails().get_item_user().equals( "user" ));
@@ -97,12 +87,12 @@ public class TestOsmObjectList
 	{
 		OsmObjectList osmObjectList = new OsmObjectList();
 		
-		OsmObjectKey osmObjectKey1 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectDetails osmObjectDetails1 = new OsmObjectDetails( "user1", "uid1", "name1", false, false,  0, 0, Action_Create );
+		OsmObjectKey osmObjectKey1 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectDetails osmObjectDetails1 = new OsmObjectDetails( "user1", "uid1", "name1", false, false,  0, 0, OsmObjectDetails.Action_Create );
 		OsmObjectInfo osmObjectInfo1 = new OsmObjectInfo( osmObjectKey1, osmObjectDetails1 );
 
-		OsmObjectKey osmObjectKey2 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectDetails osmObjectDetails2 = new OsmObjectDetails( "user2", "uid2", "name2", false, false,  0, 0, Action_Modify );
+		OsmObjectKey osmObjectKey2 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectDetails osmObjectDetails2 = new OsmObjectDetails( "user2", "uid2", "name2", false, false,  0, 0, OsmObjectDetails.Action_Modify );
 		OsmObjectInfo osmObjectInfo2 = new OsmObjectInfo( osmObjectKey2, osmObjectDetails2 );
 
 		osmObjectList.add( osmObjectInfo1.get_osmObjectKey(), osmObjectInfo1.get_osmObjectDetails() );
@@ -117,12 +107,12 @@ public class TestOsmObjectList
 	{
 		OsmObjectList osmObjectList = new OsmObjectList();
 		
-		OsmObjectKey osmObjectKey1 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectDetails osmObjectDetails1 = new OsmObjectDetails( "user1", "uid1", "name1", false, false, 0, 0, Action_Create );
+		OsmObjectKey osmObjectKey1 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectDetails osmObjectDetails1 = new OsmObjectDetails( "user1", "uid1", "name1", false, false, 0, 0, OsmObjectDetails.Action_Create );
 		OsmObjectInfo osmObjectInfo1 = new OsmObjectInfo( osmObjectKey1, osmObjectDetails1 );
 
-		OsmObjectKey osmObjectKey2 = new OsmObjectKey( Item_Node, "1" );
-		OsmObjectDetails osmObjectDetails2 = new OsmObjectDetails( "user2", "uid2", "name2", true, true, 1, 1, Action_Modify );
+		OsmObjectKey osmObjectKey2 = new OsmObjectKey( OsmObjectKey.Item_Node, "1" );
+		OsmObjectDetails osmObjectDetails2 = new OsmObjectDetails( "user2", "uid2", "name2", true, true, 1, 1, OsmObjectDetails.Action_Modify );
 		OsmObjectInfo osmObjectInfo2 = new OsmObjectInfo( osmObjectKey2, osmObjectDetails2 );
 
 		osmObjectList.add( osmObjectInfo1.get_osmObjectKey(), osmObjectInfo1.get_osmObjectDetails() );
@@ -130,7 +120,7 @@ public class TestOsmObjectList
 		
 		OsmObjectInfo osmObjectInfo3 = osmObjectList.get(0);
 		
-		assertTrue( osmObjectInfo3.get_osmObjectKey().get_item_type() == Item_Node );
+		assertTrue( osmObjectInfo3.get_osmObjectKey().get_item_type() == OsmObjectKey.Item_Node );
 		assertTrue( osmObjectInfo3.get_osmObjectKey().get_item_id().equals( "1" ));
 		
 		assertTrue( osmObjectInfo3.get_osmObjectDetails().get_item_user().equals( "user2" ));
@@ -139,7 +129,7 @@ public class TestOsmObjectList
 		assertTrue( osmObjectInfo3.get_osmObjectDetails().get_overlaps_bbox() == true );
 		assertTrue( osmObjectInfo3.get_osmObjectDetails().get_number_of_children() == 1 );
 		assertTrue( osmObjectInfo3.get_osmObjectDetails().get_number_of_tags() == 1 );
-		assertTrue( osmObjectInfo3.get_osmObjectDetails().get_last_action() == Action_Modify );
+		assertTrue( osmObjectInfo3.get_osmObjectDetails().get_last_action() == OsmObjectDetails.Action_Modify );
 
 	}
 }

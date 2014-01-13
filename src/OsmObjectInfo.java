@@ -13,33 +13,14 @@ import org.w3c.dom.NodeList;
 
 
 public class OsmObjectInfo {
-	final static int Log_Debug_Off = 0;			// Used to turn debug off
-	final static int Log_Serious = 1;			// A serious error has occurred
-	final static int Log_Error = 2;				// An error that we can work around has occurred
-	final static int Log_Warning = 3;			// Not currently used
-	final static int Log_Return = 4; 			// Return values from top-level subroutines
-	final static int Log_Informational_1 = 5;	// Important informational stuff
-	final static int Log_Top_Routine_Start = 6;	// top-level routine start code
-	final static int Log_Low_Routine_Start = 7; // low-level routing start code
-	final static int Log_Informational_2 = 8;	// Any other informational stuff
-
-	final static byte Item_Unknown = 0;
-	final static byte Item_Node = 1;
-	final static byte Item_Way = 2;
-	final static byte Item_Relation = 3;
-
-	final static byte Action_Unknown = 0;
-	final static byte Action_Create = 1;
-	final static byte Action_Modify = 2;
-	final static byte Action_Delete = 3;
 
 	OsmObjectKey osmObjectKey;
 	OsmObjectDetails osmObjectDetails;
 
 	OsmObjectInfo()
 	{
-		osmObjectKey = new OsmObjectKey( Item_Unknown, "" );
-		osmObjectDetails = new OsmObjectDetails( "", "", "", false, false, 0, 0, Action_Unknown );
+		osmObjectKey = new OsmObjectKey( OsmObjectKey.Item_Unknown, "" );
+		osmObjectDetails = new OsmObjectDetails( "", "", "", false, false, 0, 0, OsmObjectDetails.Action_Unknown );
 	}
 
 	OsmObjectInfo( OsmObjectKey passed_osmObjectKey, OsmObjectDetails passed_osmObjectDetails )
@@ -148,7 +129,10 @@ public class OsmObjectInfo {
 		osmObjectDetails.inc_number_of_children();
 	}
 
-//qqq02
+/* ------------------------------------------------------------------------------
+ * There's no set method for number_of_children as we only ever expect to
+ * increment it. If there was, here's what it would look like:
+ * ------------------------------------------------------------------------------ */
 //	void set_number_of_children( int passed_number_of_children )
 //	{
 //		osmObjectDetails.set_number_of_children( passed_number_of_children );
@@ -164,7 +148,10 @@ public class OsmObjectInfo {
 		osmObjectDetails.inc_number_of_tags();
 	}
 
-//qqq02
+/* ------------------------------------------------------------------------------
+ * There's no set method for number_of_tags as we only ever expect to
+ * increment it.  If there was, here's what it would look like:
+ * ------------------------------------------------------------------------------ */
 //	void set_number_of_tags( int passed_number_of_tags )
 //	{
 //		osmObjectDetails.set_number_of_tags( passed_number_of_tags );
@@ -208,7 +195,7 @@ public class OsmObjectInfo {
 	{
 		boolean return_value = false;
 		
-		if ( passed_arg_debug >= Log_Informational_2 )
+		if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 		{
 			System.out.println( "We will try and download node: " + passed_node_id + " version: " + passed_version );
 		}
@@ -273,7 +260,7 @@ public class OsmObjectInfo {
 	{
 		boolean return_value = false;
 		
-		if ( passed_arg_debug >= Log_Informational_2 )
+		if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 		{
 			System.out.println( "We will try and download node: " + passed_node_id + " (latest version)");
 		}
@@ -336,7 +323,7 @@ public class OsmObjectInfo {
 			NodeList level_1_xmlnodes = root_node.getChildNodes();
 			int num_l1_xmlnodes = level_1_xmlnodes.getLength();
 	
-			if ( passed_arg_debug >= Log_Informational_2 )
+			if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 			{
 				System.out.println( "Changeset L1 nodes found: " + num_l1_xmlnodes );
 			}
@@ -354,7 +341,7 @@ public class OsmObjectInfo {
  * ------------------------------------------------------------------------------------------------------------ */
 				if ( !l1_item_type.equals( "#text" ))
 				{
-					if ( passed_arg_debug >= Log_Informational_2 )
+					if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 					{
 						System.out.println( "Found 1: " + l1_item_type );
 					}
@@ -376,7 +363,7 @@ public class OsmObjectInfo {
  * We've read the version of a node before the deletion so we would expect a lat here, hence an informational
  * rather than debug error.
  * ------------------------------------------------------------------------------------------------------------ */
-							if ( passed_arg_debug >= Log_Informational_1 )
+							if ( passed_arg_debug >= Changeset1.Log_Informational_1 )
 							{
 								System.out.println( "No lat for id: " + id_node.getNodeValue() + " version: " + version_node.getNodeValue()  );
 							}
@@ -385,7 +372,7 @@ public class OsmObjectInfo {
 						{ // valid lat
 							if ( lon_node == null )
 							{
-								if ( passed_arg_debug >= Log_Informational_1 )
+								if ( passed_arg_debug >= Changeset1.Log_Informational_1 )
 								{
 									System.out.println( "No lon for id: " + id_node.getNodeValue() + " version: " + version_node.getNodeValue()  );
 								}
@@ -396,7 +383,7 @@ public class OsmObjectInfo {
 										passed_max_lat_string, passed_max_lon_string, 
 										id_node, lat_node, lon_node );
 								
-								if ( passed_arg_debug >= Log_Informational_2 )
+								if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 								{
 									System.out.println( "id: " + id_node.getNodeValue() + " overlaps: " + node_overlaps  );
 								}
@@ -509,7 +496,7 @@ public class OsmObjectInfo {
 			{
 				osmObjectKey.set_item_id( id_node.getNodeValue() );
 				
-				if ( passed_arg_debug >= Log_Informational_2 )
+				if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 				{
 					System.out.println( "id: " + id_node.getNodeValue() );
 				}
@@ -522,7 +509,7 @@ public class OsmObjectInfo {
 				{
 					set_item_user( user_node.getNodeValue() );
 					
-					if ( passed_arg_debug >= Log_Informational_2 )
+					if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 					{
 						System.out.println( "user: " + user_node.getNodeValue() );
 					}
@@ -536,7 +523,7 @@ public class OsmObjectInfo {
 				{
 					set_item_uid( uid_node.getNodeValue() );
 					
-					if ( passed_arg_debug >= Log_Informational_2 )
+					if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 					{
 						System.out.println( "uid: " + uid_node.getNodeValue() );
 					}
@@ -547,7 +534,7 @@ public class OsmObjectInfo {
 /* ------------------------------------------------------------------------------------------------------------
  * Possibly a deletion - the lat and lon of deleted nodes are not returned in the OSC document.
  * ------------------------------------------------------------------------------------------------------------ */
-					if ( passed_arg_debug >= Log_Informational_2 )
+					if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 					{
 						System.out.println( "No lat for id: " + id_node.getNodeValue() + ", probably a deletion.");
 					}
@@ -566,14 +553,14 @@ public class OsmObjectInfo {
 					{
 						if ( version_node == null )
 						{
-							if ( passed_arg_debug >= Log_Informational_2 )
+							if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 							{
 								System.out.println( "No version for id: " + id_node.getNodeValue() );
 							}
 						}
 						else
 						{
-							if ( passed_arg_debug >= Log_Informational_2 )
+							if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 							{
 								System.out.println( "id: " + id_node.getNodeValue() + " is version: " + version_node.getNodeValue() );
 							}
@@ -582,7 +569,7 @@ public class OsmObjectInfo {
 							{
 								String previous_version = String.valueOf( Integer.valueOf( version_node.getNodeValue()) - 1 );
 								
-								if ( passed_arg_debug >= Log_Informational_2 )
+								if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 								{
 									System.out.println( "previous version: " + previous_version );
 								}
@@ -596,7 +583,7 @@ public class OsmObjectInfo {
 								}
 								catch( Exception ex )
 								{
-									if ( passed_arg_debug >= Log_Informational_1 )
+									if ( passed_arg_debug >= Changeset1.Log_Informational_1 )
 									{
 										System.out.println( "Exception downloading node id: " + id_node.getNodeValue() + " version: " + version_node.getNodeValue() + " from API." );
 									}
@@ -612,7 +599,7 @@ public class OsmObjectInfo {
  * If this happens we don't assign "node_overlaps" as we don't know whether it
  * overlaps or not.
  * ------------------------------------------------------------------------------ */
-								if ( passed_arg_debug >= Log_Informational_1 )
+								if ( passed_arg_debug >= Changeset1.Log_Informational_1 )
 								{
 									System.out.println( "Exception obtaining previous version for node id: " + id_node.getNodeValue() + " version: " + version_node.getNodeValue() );
 								}
@@ -624,7 +611,7 @@ public class OsmObjectInfo {
 				{ // lat_node NOT null
 					if ( lon_node == null )
 					{
-						if ( passed_arg_debug >= Log_Informational_2 )
+						if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 						{
 							System.out.println( "No lon for id: " + id_node.getNodeValue() );
 						}
@@ -642,7 +629,7 @@ public class OsmObjectInfo {
 						}
 						else
 						{
-							if ( passed_arg_debug >= Log_Informational_2 )
+							if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 							{
 								System.out.println( "Node lat/lon processing - we are missing a lat or long, probably because we're interested in all changesets" );
 							}
@@ -699,7 +686,7 @@ public class OsmObjectInfo {
 			}
 			else
 			{
-				if ( passed_arg_debug >= Log_Informational_2 )
+				if ( passed_arg_debug >= Changeset1.Log_Informational_2 )
 				{
 					System.out.println( "id: " + id_node.getNodeValue() );
 				}
@@ -731,12 +718,12 @@ public class OsmObjectInfo {
 				{
 					if ( passed_l1_item_type.equals( "delete"   ))
 					{
-						if ( get_item_type() == Item_Way )
+						if ( get_item_type() == OsmObjectKey.Item_Way )
 						{
 							passed_myPrintStream.println( get_item_user() + ";" + get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + id_node.getNodeValue() + " deleted" );
 						}
 
-						if ( get_item_type() == Item_Relation )
+						if ( get_item_type() == OsmObjectKey.Item_Relation )
 						{
 							passed_myPrintStream.println( get_item_user() + ";" + get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + id_node.getNodeValue() + " deleted" );
 						}

@@ -26,16 +26,6 @@ public class Changeset1
 	final static int Log_Low_Routine_Start = 7; // low-level routing start code
 	final static int Log_Informational_2 = 8;	// Any other informational stuff
 
-	final static byte Item_Unknown = 0;
-	final static byte Item_Node = 1;
-	final static byte Item_Way = 2;
-	final static byte Item_Relation = 3;
-	
-	final static byte Action_Unknown = 0;
-	final static byte Action_Create = 1;
-	final static byte Action_Modify = 2;
-	final static byte Action_Delete = 3;
-
 	final static String param_input = "-input=";
 	final static String param_output = "-output=";
 	final static String param_display_name = "-display_name=";
@@ -381,15 +371,15 @@ public class Changeset1
 							
 							if ( l1_item_type.equals( "create" ))
 							{
-								osmObjectInfo.set_last_action( Action_Create );
+								osmObjectInfo.set_last_action( OsmObjectDetails.Action_Create );
 							} 
 							else if ( l1_item_type.equals( "modify" ))
 							{
-								osmObjectInfo.set_last_action( Action_Modify );
+								osmObjectInfo.set_last_action( OsmObjectDetails.Action_Modify );
 							} 
 							else if ( l1_item_type.equals( "delete" ))
 							{
-								osmObjectInfo.set_last_action( Action_Delete );
+								osmObjectInfo.set_last_action( OsmObjectDetails.Action_Delete );
 							}
 							
 /* ------------------------------------------------------------------------------------------------------------
@@ -397,7 +387,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( l2_item_type.equals( "node" ))
 							{
-								osmObjectInfo.set_item_type( Item_Node );
+								osmObjectInfo.set_item_type( OsmObjectKey.Item_Node );
 								
 								osmObjectInfo.process_downloaded_changeset_node_attributes( passed_min_lat_string, passed_min_lon_string, 
 										passed_max_lat_string, passed_max_lon_string, 
@@ -408,7 +398,7 @@ public class Changeset1
 							{
 								if ( l2_item_type.equals( "way" ))
 								{
-									osmObjectInfo.set_item_type( Item_Way );
+									osmObjectInfo.set_item_type( OsmObjectKey.Item_Way );
 									
 									osmObjectInfo.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
 											l1_item_type, passed_changeset_number, 
@@ -418,7 +408,7 @@ public class Changeset1
 								{
 									if ( l2_item_type.equals( "relation" ))
 									{
-										osmObjectInfo.set_item_type( Item_Relation );
+										osmObjectInfo.set_item_type( OsmObjectKey.Item_Relation );
 										
 										osmObjectInfo.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
 												l1_item_type, passed_changeset_number, 
@@ -667,6 +657,9 @@ public class Changeset1
 							} // for level 3 nodes - something like "nd", "member" or "tag".
 
 /* ------------------------------------------------------------------------------------------------------------
+ * At this point we've processed all the child XML nodes of the "node", "way" or "relation" that we're 
+ * currently processing, including things like "nodes for a way" and "tags for an object".
+ * 
  * If we've found a "create" for a new item, it won't exist in our List and we can just add it.  If we've
  * found a "modify" or "delete"; it might already exist.
  * ------------------------------------------------------------------------------------------------------------ */
@@ -679,10 +672,6 @@ public class Changeset1
 								osmObjectList.addOrUpdate( osmObjectInfo.get_osmObjectKey(), osmObjectInfo.get_osmObjectDetails() );
 							}
 							
-/* ------------------------------------------------------------------------------------------------------------
- * At this point we've processed all the child XML nodes of the "node", "way" or "relation" that we're 
- * currently processing.
- * ------------------------------------------------------------------------------------------------------------ */
 							if ( osmObjectInfo.get_overlaps_bbox() )
 							{
 								changeset_nodes_overlap = true;
@@ -698,7 +687,7 @@ public class Changeset1
  * Deleted relations are reported elsewhere - don't also report that they have no members. 
  * ------------------------------------------------------------------------------------------------------------ */
 
-							if ( osmObjectInfo.get_item_type() == Item_Relation )
+							if ( osmObjectInfo.get_item_type() == OsmObjectKey.Item_Relation )
 							{
 								if ( arg_debug >= Log_Informational_2 )
 								{
@@ -719,7 +708,7 @@ public class Changeset1
  * Deleted ways are reported elsewhere - don't also report that they have no members.
  * We do report on created or modified ways with no nodes, though.  We also report on single-node ways. 
  * ------------------------------------------------------------------------------------------------------------ */
-							if ( osmObjectInfo.get_item_type() == Item_Way )
+							if ( osmObjectInfo.get_item_type() == OsmObjectKey.Item_Way )
 							{
 								if ( arg_debug >= Log_Informational_2 )
 								{
@@ -769,11 +758,11 @@ public class Changeset1
 				{
 					OsmObjectInfo osmObjectInfo = osmObjectList.get( cntr_1 );
 					
-					if (( osmObjectInfo.get_item_type() != Item_Node       ) &&
+					if (( osmObjectInfo.get_item_type() != OsmObjectKey.Item_Node ) &&
 						( osmObjectInfo.get_number_of_tags() == 0          ) &&
-						( osmObjectInfo.get_last_action() != Action_Delete ))
+						( osmObjectInfo.get_last_action() != OsmObjectDetails.Action_Delete ))
 						{
-							if ( osmObjectInfo.get_item_type() == Item_Way )
+							if ( osmObjectInfo.get_item_type() == OsmObjectKey.Item_Way )
 							{
 								myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObjectInfo.get_item_id()  + " finally has no tags"  );
 							}

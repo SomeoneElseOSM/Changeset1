@@ -10,7 +10,7 @@ public class OsmObjectDetails
 	private String item_uid;
 	private String node_name;
 	private boolean building_or_shop_found;
-	private boolean overlaps_bbox = false;
+	private boolean overlaps_bbox;
 	private int number_of_children;
 	private int number_of_tags;
 	private byte last_action;
@@ -88,8 +88,11 @@ public class OsmObjectDetails
 	{
 		number_of_children++;
 	}
-	
-	//qqq02
+
+/* ------------------------------------------------------------------------------
+ * There's no set method for number_of_children as we only ever expect to
+ * increment it. If there was, here's what it would look like:
+ * ------------------------------------------------------------------------------ */
 //	void set_number_of_children( int passed_number_of_children )
 //	{
 //		number_of_children = passed_number_of_children;
@@ -105,7 +108,10 @@ public class OsmObjectDetails
 		number_of_tags++;
 	}
 
-	//qqq02
+/* ------------------------------------------------------------------------------
+ * There's no set method for number_of_tags as we only ever expect to
+ * increment it.  If there was, here's what it would look like:
+ * ------------------------------------------------------------------------------ */
 //	void set_number_of_tags( int passed_number_of_tags )
 //	{
 //		number_of_tags = passed_number_of_tags;
