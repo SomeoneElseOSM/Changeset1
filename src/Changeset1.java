@@ -31,6 +31,11 @@ public class Changeset1
 	final static byte Item_Way = 2;
 	final static byte Item_Relation = 3;
 	
+	final static byte Action_Unknown = 0;
+	final static byte Action_Create = 1;
+	final static byte Action_Modify = 2;
+	final static byte Action_Delete = 3;
+
 	final static String param_input = "-input=";
 	final static String param_output = "-output=";
 	final static String param_display_name = "-display_name=";
@@ -321,6 +326,11 @@ public class Changeset1
 			}
 	
 /* ------------------------------------------------------------------------------------------------------------
+ * Create an object in which to store details of our current node, way or relation.
+ * ------------------------------------------------------------------------------------------------------------ */
+			OsmObjectList osmObjectList = new OsmObjectList();
+							
+/* ------------------------------------------------------------------------------------------------------------
  * Iterate through the level 1 nodes
  * ------------------------------------------------------------------------------------------------------------ */
 			for ( int cntr_1 = 0; cntr_1 < num_l1_xmlnodes; ++cntr_1 ) 
@@ -367,16 +377,29 @@ public class Changeset1
 /* ------------------------------------------------------------------------------------------------------------
  * Create an object in which to store details of our current node, way or relation.
  * ------------------------------------------------------------------------------------------------------------ */
-							OsmObjectInfo osmObject = new OsmObjectInfo();
-
+							OsmObjectInfo osmObjectInfo = new OsmObjectInfo();
+							
+							if ( l1_item_type.equals( "create" ))
+							{
+								osmObjectInfo.set_last_action( Action_Create );
+							} 
+							else if ( l1_item_type.equals( "modify" ))
+							{
+								osmObjectInfo.set_last_action( Action_Modify );
+							} 
+							else if ( l1_item_type.equals( "delete" ))
+							{
+								osmObjectInfo.set_last_action( Action_Delete );
+							}
+							
 /* ------------------------------------------------------------------------------------------------------------
  * Look at attributes first.  These vary depending on whether we've got a node or a way or relation.
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( l2_item_type.equals( "node" ))
 							{
-								osmObject.set_item_type( Item_Node );
+								osmObjectInfo.set_item_type( Item_Node );
 								
-								osmObject.process_downloaded_changeset_node_attributes( passed_min_lat_string, passed_min_lon_string, 
+								osmObjectInfo.process_downloaded_changeset_node_attributes( passed_min_lat_string, passed_min_lon_string, 
 										passed_max_lat_string, passed_max_lon_string, 
 										this_l2_item, arg_debug, passed_overlapnodes, changeset_nodes_overlap, passed_download_nodes, api_path );
 								
@@ -385,9 +408,9 @@ public class Changeset1
 							{
 								if ( l2_item_type.equals( "way" ))
 								{
-									osmObject.set_item_type( Item_Way );
+									osmObjectInfo.set_item_type( Item_Way );
 									
-									osmObject.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
+									osmObjectInfo.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
 											l1_item_type, passed_changeset_number, 
 											arg_debug, arg_out_file, myPrintStream );
 								}
@@ -395,9 +418,9 @@ public class Changeset1
 								{
 									if ( l2_item_type.equals( "relation" ))
 									{
-										osmObject.set_item_type( Item_Relation );
+										osmObjectInfo.set_item_type( Item_Relation );
 										
-										osmObject.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
+										osmObjectInfo.process_downloaded_changeset_wayrelation_attributes( this_l2_item,  
 												l1_item_type, passed_changeset_number, 
 												arg_debug, arg_out_file, myPrintStream );
 									} // relation
@@ -441,7 +464,7 @@ public class Changeset1
 									if ( l3_item_type.equals( "nd" ))
 									{
 										boolean way_node_overlaps = false;
-										osmObject.inc_number_of_children();
+										osmObjectInfo.inc_number_of_children();
 										
 /* ------------------------------------------------------------------------------------------------------------
  * We'd expect an "nd" to at least have the attribute "ref".
@@ -474,7 +497,7 @@ public class Changeset1
 													( !passed_min_lon_string.equals( ""    )) &&
 													( !passed_max_lat_string.equals( ""    )) &&
 													( !passed_max_lon_string.equals( ""    )) &&
-													( !osmObject.get_overlaps_bbox() || passed_overlapnodes )) 
+													( !osmObjectInfo.get_overlaps_bbox() || passed_overlapnodes )) 
 													{
 														OsmObjectInfo osm_wayrelation = new OsmObjectInfo();
 		
@@ -487,7 +510,7 @@ public class Changeset1
 															
 															if ( way_node_overlaps )
 															{
-																osmObject.set_overlaps_bbox( true );
+																osmObjectInfo.set_overlaps_bbox( true );
 															}
 														}
 														catch( Exception ex )
@@ -505,7 +528,7 @@ public class Changeset1
 									{ // !nd
 										if ( l3_item_type.equals( "tag" ))
 										{
-											osmObject.inc_number_of_tags();
+											osmObjectInfo.inc_number_of_tags();
 											
 											if ( this_l3_item.hasAttributes() )
 											{
@@ -546,7 +569,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 														if ( key_node.getNodeValue().equals( "name" ))
 														{
-															osmObject.set_node_name( value_node.getNodeValue() );
+															osmObjectInfo.set_node_name( value_node.getNodeValue() );
 														}
 														else
 														{
@@ -557,7 +580,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 															if ( key_node.getNodeValue().equals( "building" ) || key_node.getNodeValue().equals( "shop" ))
 															{
-																osmObject.set_building_or_shop_found( true );
+																osmObjectInfo.set_building_or_shop_found( true );
 															}
 															
 // here would go any other processing of the tag / value from the OSC file
@@ -574,7 +597,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 											if ( l3_item_type.equals( "member" ))
 											{
-												osmObject.inc_number_of_children();
+												osmObjectInfo.inc_number_of_children();
 												
 												if ( this_l3_item.hasAttributes() )
 												{
@@ -644,16 +667,29 @@ public class Changeset1
 							} // for level 3 nodes - something like "nd", "member" or "tag".
 
 /* ------------------------------------------------------------------------------------------------------------
+ * If we've found a "create" for a new item, it won't exist in our List and we can just add it.  If we've
+ * found a "modify" or "delete"; it might already exist.
+ * ------------------------------------------------------------------------------------------------------------ */
+							if ( l1_item_type.equals( "create" ))
+							{
+								osmObjectList.add( osmObjectInfo.get_osmObjectKey(), osmObjectInfo.get_osmObjectDetails() );
+							}
+							else
+							{
+								osmObjectList.addOrUpdate( osmObjectInfo.get_osmObjectKey(), osmObjectInfo.get_osmObjectDetails() );
+							}
+							
+/* ------------------------------------------------------------------------------------------------------------
  * At this point we've processed all the child XML nodes of the "node", "way" or "relation" that we're 
  * currently processing.
  * ------------------------------------------------------------------------------------------------------------ */
-							if ( osmObject.get_overlaps_bbox() )
+							if ( osmObjectInfo.get_overlaps_bbox() )
 							{
 								changeset_nodes_overlap = true;
 								
 								if (( arg_out_file != "" ) &&  passed_overlapnodes )
 								{
-									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Node " + osmObject.get_item_id() + " (" + osmObject.get_node_name() + ") overlaps" );
+									myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Node " + osmObjectInfo.get_item_id() + " (" + osmObjectInfo.get_node_name() + ") overlaps" );
 								}
 							}
 
@@ -662,19 +698,19 @@ public class Changeset1
  * Deleted relations are reported elsewhere - don't also report that they have no members. 
  * ------------------------------------------------------------------------------------------------------------ */
 
-							if ( osmObject.get_item_type() == Item_Relation )
+							if ( osmObjectInfo.get_item_type() == Item_Relation )
 							{
 								if ( arg_debug >= Log_Informational_2 )
 								{
-									System.out.println( "Members: " + osmObject.get_number_of_children() );
+									System.out.println( "Members: " + osmObjectInfo.get_number_of_children() );
 								}
 
-								if ( osmObject.get_number_of_children() == 0 )
+								if ( osmObjectInfo.get_number_of_children() == 0 )
 								{
 									if (( arg_out_file != ""                ) &&
 										( !l1_item_type.equals( "delete"   )))
 									{
-										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + osmObject.get_item_id()  + " has no members" );
+										myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + osmObjectInfo.get_item_id()  + " has no members" );
 									}
 								}
 							}
@@ -683,40 +719,28 @@ public class Changeset1
  * Deleted ways are reported elsewhere - don't also report that they have no members.
  * We do report on created or modified ways with no nodes, though.  We also report on single-node ways. 
  * ------------------------------------------------------------------------------------------------------------ */
-							if ( osmObject.get_item_type() == Item_Way )
+							if ( osmObjectInfo.get_item_type() == Item_Way )
 							{
 								if ( arg_debug >= Log_Informational_2 )
 								{
-									System.out.println( "Nodes: " + osmObject.get_number_of_children() );
+									System.out.println( "Nodes: " + osmObjectInfo.get_number_of_children() );
 								}
 								
-								if ( osmObject.get_number_of_children() == 0 )
+								if ( osmObjectInfo.get_number_of_children() == 0 )
 								{
 									if (( arg_out_file != ""                ) &&
 										( !l1_item_type.equals( "delete"   )))
 									{
-										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " has no nodes" );
+										myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObjectInfo.get_item_id()  + " has no nodes" );
 									}
 								}
 								
-								if ( osmObject.get_number_of_children() == 1 )
+								if ( osmObjectInfo.get_number_of_children() == 1 )
 								{
 									if ( arg_out_file != ""  )
 									{
-										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " has only 1 node" );
+										myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObjectInfo.get_item_id()  + " has only 1 node" );
 									}
-								}
-								
-								try
-								{
-									if ( osmObject.get_building_or_shop_found() && ( osmObject.get_number_of_children() > Integer.valueOf( passed_building )))
-									{
-										myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " is a huge building or shop" );
-									}
-								}
-								catch( Exception ex )
-								{
-									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " - error evaluating way nodes: " + ex.getMessage() );
 								}
 							} // way
 
@@ -729,27 +753,49 @@ public class Changeset1
  * ------------------------------------------------------------------------------------------------------------ */
 							if ( arg_debug >= Log_Informational_2 )
 							{
-								System.out.println( "Tags: " + osmObject.get_number_of_tags() );
-							}
-
-							if (( arg_out_file != ""                     ) &&
-								( !l1_item_type.equals( "delete"        )) &&
-								( osmObject.get_item_type() != Item_Node ) &&
-								( osmObject.get_number_of_tags() == 0         ))
-							{
-								if ( osmObject.get_item_type() == Item_Way )
-								{
-									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObject.get_item_id()  + " currently has no tags" );
-								}
-								else
-								{
-									myPrintStream.println( osmObject.get_item_user() + ";" + osmObject.get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + osmObject.get_item_id()  + " currently has no tags" );
-								}
+								System.out.println( "Tags: " + osmObjectInfo.get_number_of_tags() );
 							}
 						} // l2 not #text
 					} // for l2 XML nodes (nodes, ways and relations)
-				}
-			} // l1 not #text
+				} // l1 not #text
+			} // for l2 XML nodes (create, modify and delete)
+			
+/* ------------------------------------------------------------------------------------------------------------
+ * After processing all XML nodes in the changeset, look through the objects in our list.
+ * ------------------------------------------------------------------------------------------------------------ */
+			if ( arg_out_file != "" )
+			{
+				for ( int cntr_1 = 0; cntr_1 < osmObjectList.size(); ++cntr_1 ) 
+				{
+					OsmObjectInfo osmObjectInfo = osmObjectList.get( cntr_1 );
+					
+					if (( osmObjectInfo.get_item_type() != Item_Node       ) &&
+						( osmObjectInfo.get_number_of_tags() == 0          ) &&
+						( osmObjectInfo.get_last_action() != Action_Delete ))
+						{
+							if ( osmObjectInfo.get_item_type() == Item_Way )
+							{
+								myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObjectInfo.get_item_id()  + " finally has no tags"  );
+							}
+							else
+							{
+								myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Relation " + osmObjectInfo.get_item_id()  + " finally has no tags" );
+							}
+						}
+					
+					try
+					{
+						if ( osmObjectInfo.get_building_or_shop_found() && ( osmObjectInfo.get_number_of_children() > Integer.valueOf( passed_building )))
+						{
+							myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObjectInfo.get_item_id()  + " is a huge building or shop" );
+						}
+					}
+					catch( Exception ex )
+					{
+						myPrintStream.println( osmObjectInfo.get_item_user() + ";" + osmObjectInfo.get_item_uid() + ";" + passed_changeset_number + ";;;;Way " + osmObjectInfo.get_item_id()  + " - error evaluating way nodes: " + ex.getMessage() );
+					}
+				} // for each object in the list
+			} // arg_out_file != ""
 		} // root node in the XML is an element
 		
 		return changeset_nodes_overlap;

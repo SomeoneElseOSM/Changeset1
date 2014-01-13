@@ -28,13 +28,44 @@ public class OsmObjectInfo {
 	final static byte Item_Way = 2;
 	final static byte Item_Relation = 3;
 
+	final static byte Action_Unknown = 0;
+	final static byte Action_Create = 1;
+	final static byte Action_Modify = 2;
+	final static byte Action_Delete = 3;
+
 	OsmObjectKey osmObjectKey;
 	OsmObjectDetails osmObjectDetails;
 
 	OsmObjectInfo()
 	{
 		osmObjectKey = new OsmObjectKey( Item_Unknown, "" );
-		osmObjectDetails = new OsmObjectDetails( "", "", "", false, false, 0, 0 );
+		osmObjectDetails = new OsmObjectDetails( "", "", "", false, false, 0, 0, Action_Unknown );
+	}
+
+	OsmObjectInfo( OsmObjectKey passed_osmObjectKey, OsmObjectDetails passed_osmObjectDetails )
+	{
+		osmObjectKey = passed_osmObjectKey;
+		osmObjectDetails = passed_osmObjectDetails;
+	}
+
+	OsmObjectKey get_osmObjectKey()
+	{
+		return osmObjectKey;
+	}
+
+	void set_osmObjectKey( OsmObjectKey passed_osmObjectKey )
+	{
+		osmObjectKey = passed_osmObjectKey;
+	}
+
+	OsmObjectDetails get_osmObjectDetails()
+	{
+		return osmObjectDetails;
+	}
+
+	void set_osmObjectDetails( OsmObjectDetails passed_osmObjectDetails )
+	{
+		osmObjectDetails = passed_osmObjectDetails;
 	}
 
 	byte get_item_type()
@@ -117,7 +148,7 @@ public class OsmObjectInfo {
 		osmObjectDetails.inc_number_of_children();
 	}
 
-//qqq
+//qqq02
 //	void set_number_of_children( int passed_number_of_children )
 //	{
 //		osmObjectDetails.set_number_of_children( passed_number_of_children );
@@ -133,11 +164,21 @@ public class OsmObjectInfo {
 		osmObjectDetails.inc_number_of_tags();
 	}
 
-//qqq
+//qqq02
 //	void set_number_of_tags( int passed_number_of_tags )
 //	{
 //		osmObjectDetails.set_number_of_tags( passed_number_of_tags );
 //	}
+
+	byte get_last_action()
+	{
+		return osmObjectDetails.get_last_action();
+	}
+
+	void set_last_action( byte passed_last_action )
+	{
+		osmObjectDetails.set_last_action( passed_last_action );
+	}
 
 	/**
 	 * download_node

@@ -1,6 +1,10 @@
 
 public class OsmObjectDetails 
 {
+	final static byte Action_Unknown = 0;
+	final static byte Action_Create = 1;
+	final static byte Action_Modify = 2;
+	final static byte Action_Delete = 3;
 
 	private String item_user;
 	private String item_uid;
@@ -9,10 +13,11 @@ public class OsmObjectDetails
 	private boolean overlaps_bbox = false;
 	private int number_of_children;
 	private int number_of_tags;
+	private byte last_action;
 
 	public OsmObjectDetails( String passed_item_user, String passed_item_uid, String passed_node_name, 
 			boolean passed_building_or_shop_found, boolean passed_overlaps_bbox, 
-			int passed_number_of_children, int passed_number_of_tags ) 
+			int passed_number_of_children, int passed_number_of_tags, byte passed_last_action ) 
 	{
 		item_user = passed_item_user;
 		item_uid = passed_item_uid;
@@ -21,6 +26,7 @@ public class OsmObjectDetails
 		overlaps_bbox = passed_overlaps_bbox;
 		number_of_children = passed_number_of_children;
 		number_of_tags = passed_number_of_tags;
+		last_action = passed_last_action;
 	}
 
 	String get_item_user()
@@ -83,7 +89,7 @@ public class OsmObjectDetails
 		number_of_children++;
 	}
 	
-	//qqq
+	//qqq02
 //	void set_number_of_children( int passed_number_of_children )
 //	{
 //		number_of_children = passed_number_of_children;
@@ -99,10 +105,21 @@ public class OsmObjectDetails
 		number_of_tags++;
 	}
 
-	//qqq
+	//qqq02
 //	void set_number_of_tags( int passed_number_of_tags )
 //	{
 //		number_of_tags = passed_number_of_tags;
 //	}
+
+	byte get_last_action()
+	{
+		return last_action;
+	}
+
+	void set_last_action( byte passed_last_action )
+	{
+		last_action = passed_last_action;
+	}
+
 
 }

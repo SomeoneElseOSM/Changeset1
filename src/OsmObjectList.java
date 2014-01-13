@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -13,32 +14,45 @@ public class OsmObjectList
 {
 
 	private List<OsmObjectKey> osmObjectList;
+	private Hashtable<OsmObjectKey, OsmObjectDetails> osmObjectHash;
 	
 	/**
 	 * 
 	 */
 	public OsmObjectList() 
 	{
-		List<OsmObjectKey> osmObjectList = new ArrayList<OsmObjectKey>();
+		osmObjectList = new ArrayList<OsmObjectKey>();
+		osmObjectHash = new Hashtable<OsmObjectKey, OsmObjectDetails>();
 	}
 
-	public void osmObjectListAdd( OsmObjectKey passed_osmObjectKey )
+	public void add( OsmObjectKey passed_osmObjectKey, OsmObjectDetails passed_osmObjectDetails )
 	{
 		osmObjectList.add( passed_osmObjectKey );
-		//qqq and store in the hashmap as well
+		osmObjectHash.put( passed_osmObjectKey, passed_osmObjectDetails );
 	}
 	
-	public void osmObjectListAddOrUpdate( OsmObjectKey passed_osmObjectKey )
+	public void addOrUpdate( OsmObjectKey passed_osmObjectKey, OsmObjectDetails passed_osmObjectDetails )
 	{
 		if( osmObjectList.indexOf( passed_osmObjectKey ) == -1 )
 		{
 			osmObjectList.add( passed_osmObjectKey );
-			//qqq and store in the hashmap as well
+			osmObjectHash.put( passed_osmObjectKey, passed_osmObjectDetails );
 		}
 		else
 		{
-			osmObjectList.set( osmObjectList.indexOf( passed_osmObjectKey ), passed_osmObjectKey );
-			//qqq and update the details in the hashmap
+			osmObjectHash.put( passed_osmObjectKey, passed_osmObjectDetails );
 		}
+	}
+	
+	public int size()
+	{
+		return osmObjectList.size();
+	}
+
+	public OsmObjectInfo get( int i )
+	{
+		OsmObjectKey osmObjectKey = osmObjectList.get( i );
+		OsmObjectInfo osmObjectInfo = new OsmObjectInfo( osmObjectKey, osmObjectHash.get( osmObjectKey ));
+		return osmObjectInfo;
 	}
 }
