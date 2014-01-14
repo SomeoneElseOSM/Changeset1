@@ -26,6 +26,10 @@ public class Changeset1
 	final static int Log_Low_Routine_Start = 7; // low-level routing start code
 	final static int Log_Informational_2 = 8;	// Any other informational stuff
 
+/* ------------------------------------------------------------------------------
+ * Parameters that require a value end in "="; parameters that don't, don't.
+ * ------------------------------------------------------------------------------ */
+	final static String param_help = "-help";
 	final static String param_input = "-input=";
 	final static String param_output = "-output=";
 	final static String param_display_name = "-display_name=";
@@ -45,6 +49,7 @@ public class Changeset1
 	final static int Overlap_Error = 4;
 	
 	static String api_path = live_api_path;		// Set to dev_api_path for testing via -dev
+	static boolean arg_help = false;			// Set to show that -help has been passed on the command line
 	static String arg_in_file = "";				// -input=
 	static String arg_out_file = "";			// -output=
 	static int arg_debug = 0;					// -debug=
@@ -1387,6 +1392,7 @@ public class Changeset1
 /* ------------------------------------------------------------------------------
  * Data passed on the command line:
  * 
+ * param_help = "-help=";
  * param_input = "-input=";
  * param_output = "-output=";
  * param_display_name = "-display_name=";
@@ -1410,8 +1416,18 @@ public class Changeset1
 		String arg_uid = "";
 		String arg_time = "";
 		
+/* ------------------------------------------------------------------------------
+ * What command-line arguments have we been passed? 
+ * 
+ * These are processed in the order that we encounter them, so if specifying 
+ * debug, it will take effect from where it's found in the command line.
+ * ------------------------------------------------------------------------------ */
 		for ( int i=0; i<args.length; i++ )
 		{
+/* ------------------------------------------------------------------------------
+ * Command line arguments are all "minus something", so are all at least two 
+ * characters long. 
+ * ------------------------------------------------------------------------------ */
 			if ( args[i].length() >= 2)
 			{
 				if ( arg_debug >= Log_Informational_2 )
@@ -1420,6 +1436,14 @@ public class Changeset1
 					System.out.println( "arg length: " + args[i].length() );
 				}
 				
+/* ------------------------------------------------------------------------------
+ * Help
+ * ------------------------------------------------------------------------------ */
+				if ( args[i].startsWith( param_help ))
+				{	
+					arg_help = true;
+					show_help();
+				}
 /* ------------------------------------------------------------------------------
  * Input file
  * ------------------------------------------------------------------------------ */
@@ -1729,7 +1753,6 @@ public class Changeset1
 			} // potentially valid argument
 		} // for each thing on the command line
 
-		
 /* ------------------------------------------------------------------------------
  * Actually do what we've been asked to do.
  * 
@@ -1739,17 +1762,27 @@ public class Changeset1
 		if ( arg_in_file.equals( "" ))
 		{
  /* ------------------------------------------------------------------------------
- * If we're processing users and/or time we need one or both of those arguments.
- * ------------------------------------------------------------------------------ */
+  * If we're processing users and/or time we need one or both of those arguments.
+  * ------------------------------------------------------------------------------ */
 			if ( arg_display_name.length() == 0 )
 			{
 				if ( arg_uid.length() == 0 )
 				{
 					if ( arg_time.length() == 0 )
 					{
+ /* ------------------------------------------------------------------------------
+  * None of the parameters that we would have expect to have been passed were, 
+  * so show the help screen, if we haven't already been asked to do so.
+  * ------------------------------------------------------------------------------ */
 						if ( arg_debug >= Log_Informational_2 )
 						{
 							System.out.println( "None of display_name, user or time passed" );
+							System.out.println( "" );
+						}
+						
+						if ( arg_help == false )
+						{
+							show_help();
 						}
 					}
 					else
@@ -2138,4 +2171,24 @@ public class Changeset1
 			myOutputStream.close();
 		}
 	} // main
+
+
+/* ------------------------------------------------------------------------------
+ * The "help" text is sent straight to "standard out".
+ * ------------------------------------------------------------------------------ */
+private static void show_help() 
+	{
+		System.out.println( "" );
+		System.out.println( "Changeset1" );
+		System.out.println( "==========" );
+		System.out.println( "Process OSM's changeset feed, and check node overlaps within a bounding box." );
+		System.out.println( "" );
+		System.out.println( "Usage example:" );
+		System.out.println( "java Changeset1 -time=\"2013-11-04T20:53\" -debug=5 -display_name=\"SomeoneElse\" -bbox=-2.123,52.809,-0.331,53.521 -output=example_out.txt" );
+		System.out.println( "" );
+		System.out.println( "This looks for changesets by the user named \"SomeoneElse\" in the specified bounding box since the specified time." );
+		System.out.println( "" );
+		System.out.println( "See https://github.com/SomeoneElseOSM/Changeset1/blob/master/README.md for more details." );
+		System.out.println( "" );
+	}
 }
