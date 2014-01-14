@@ -66,7 +66,7 @@ Things that it can spot
 
 Supported Parameters
 ---------------------
--help  
+### -help  
 Prints a basic "usage" screen.
 
 -input=some_input_file.txt
