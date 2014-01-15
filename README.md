@@ -81,6 +81,9 @@ Specifies a user's display name to search for changesets for.  It will be URLenc
 ### -user=112
 Specifies a user's userid to search for changesets for.  Useful for when display names change, or when they contain characters that can't easily be passed from the command line.
 
+### -id=37428
+Specifies a changeset id to download.  Use this instead of -display_name=, -user= or -time= to examine one specific changeset.
+
 ### -time="2013-11-04T20:53"
 The time, specified in a way that the API will understand, to search for changesets from.
 

@@ -34,6 +34,7 @@ public class Changeset1
 	final static String param_output = "-output=";
 	final static String param_display_name = "-display_name=";
 	final static String param_uid = "-user=";
+	final static String param_id = "-id=";
 	final static String param_time = "-time=";
 	final static String param_dev = "-dev";
 	final static String param_debug = "-debug=";
@@ -1336,6 +1337,24 @@ public class Changeset1
 	}
 	
 	
+	static void process_id( String passed_id, 
+			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
+			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception 
+	{
+		if ( arg_debug >= Log_Low_Routine_Start )
+		{
+			System.out.println( "process_id" );
+		}
+
+		URL url;
+		url = new URL( api_path + "changeset/" + passed_id );
+		
+		process_changesets_url_common( url, "Any User", "", 
+				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
+				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
+	}
+
+	
 	/**
 	 * get_line_param
 	 * 
@@ -1397,6 +1416,7 @@ public class Changeset1
  * param_output = "-output=";
  * param_display_name = "-display_name=";
  * param_uid = "-user=";
+ * param_id = "-id=";
  * param_time = "-time=";
  * param_dev = "-dev";
  * param_debug = "-debug=";
@@ -1414,6 +1434,7 @@ public class Changeset1
 	{
 		String arg_display_name = "";
 		String arg_uid = "";
+		String arg_id = "";
 		String arg_time = "";
 		
 /* ------------------------------------------------------------------------------
@@ -1521,7 +1542,7 @@ public class Changeset1
 				} // -display_name
 				
 /* ------------------------------------------------------------------------------
- * The user that we're interested in changesets for - userid
+ * The user that we're interested in changesets for - uid
  * ------------------------------------------------------------------------------ */
 				if ( args[i].startsWith( param_uid ))
 				{	
@@ -1533,6 +1554,20 @@ public class Changeset1
 						System.out.println( "arg_uid length: " + arg_uid.length() );
 					}
 				} // -uid
+				
+/* ------------------------------------------------------------------------------
+ * The changeset number that we're interested in changesets for - id
+ * ------------------------------------------------------------------------------ */
+				if ( args[i].startsWith( param_id ))
+				{	
+					arg_id = args[i].substring( param_id.length() );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "arg_id: " + arg_id );
+						System.out.println( "arg_id length: " + arg_id.length() );
+					}
+				} // -id
 				
 /* ------------------------------------------------------------------------------
  * The time to start looking for changesets from 
@@ -1770,19 +1805,29 @@ public class Changeset1
 				{
 					if ( arg_time.length() == 0 )
 					{
+						if ( arg_id.length() == 0 )
+						{
  /* ------------------------------------------------------------------------------
   * None of the parameters that we would have expect to have been passed were, 
   * so show the help screen, if we haven't already been asked to do so.
   * ------------------------------------------------------------------------------ */
-						if ( arg_debug >= Log_Informational_2 )
-						{
-							System.out.println( "None of display_name, user or time passed" );
-							System.out.println( "" );
+							if ( arg_debug >= Log_Informational_2 )
+							{
+								System.out.println( "None of display_name, user, id or time passed" );
+								System.out.println( "" );
+							}
+							
+							if ( arg_help == false )
+							{
+								show_help();
+							}
 						}
-						
-						if ( arg_help == false )
-						{
-							show_help();
+						else
+						{ // We've been passed a specific changeset id
+							process_id( arg_id, arg_min_lat_string, arg_min_lon_string, 
+									arg_max_lat_string, arg_max_lon_string, 
+									arg_download_changeset, arg_building, 
+									arg_overlapnodes, arg_download_nodes );
 						}
 					}
 					else
@@ -1864,6 +1909,7 @@ public class Changeset1
 				String in_line = "";
 				String line_display_name = "";
 				String line_uid = "";
+				String line_id = "";
 				String line_time = "";
 				String line_bbox = "";
 				String line_min_lat_string = "";
@@ -1904,6 +1950,18 @@ public class Changeset1
 					if ( line_uid.equals( "" ))
 					{
 						line_uid = arg_uid;
+					}
+					
+					line_id          = get_line_string_param( param_id, in_line );
+					
+					if ( arg_debug >= Log_Informational_2 )
+					{
+						System.out.println( "line_id: " + line_id );
+					}
+					
+					if ( line_id.equals( "" ))
+					{
+						line_id = arg_id;
 					}
 					
 					line_time         = get_line_string_param( param_time, in_line );
