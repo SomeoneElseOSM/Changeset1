@@ -13,7 +13,7 @@ It uses the OSM API so please don't go mad with it - follow http://wiki.openstre
 
 Eclipse
 -------
-You can import it into Eclipse if you want to (although, given that it's only a few small Java classes, there's really no need to).  If you're not using an IDE, install a JDK (e.g. from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html), then just ensure that the `javac` that you have just installed is on the PATH, and `javac Changeset1.java` etc. `Changeset1.class` and the others.  Then just `java Changeset1 ...`. 
+You can import it into Eclipse if you want to (although, given that it's only a few small Java classes, there's really no need to).  If you're not using an IDE, install a JDK (e.g. from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html), then just ensure that the `javac` that you have just installed is on the PATH, and `javac Changeset1.java` etc.  Then just `java Changeset1 ...`. 
 
 
 Usage examples
