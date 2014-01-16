@@ -1205,7 +1205,7 @@ public class Changeset1
 		}
 	}
 	
-	static void process_changesets_url_common ( URL passed_url, String passed_display_name, String passed_uid, 
+	static void process_changesets_url_common ( URL passed_url, String passed_display_name, String passed_uid, String passed_id,  
 			String passed_min_lat_string, String passed_min_lon_string, String passed_max_lat_string, String passed_max_lon_string, 
 			String passed_download_changeset, String passed_building, boolean passed_overlapnodes, String passed_download_nodes ) throws Exception
 	{
@@ -1251,7 +1251,13 @@ public class Changeset1
 		{
 			if ( arg_debug >= Log_Error )
 			{
-				System.out.println( "Error obtaining: " + passed_url + ", " + ex.getMessage() );
+				//qqq
+				System.out.println( "Error obtaining: " + passed_url );
+			}
+			
+			if ( arg_out_file != "" )
+			{
+				myPrintStream.println( passed_display_name + ";" + passed_uid + ";" + passed_id + ";;;;0 changesets, error obtaining" );
 			}
 		}
 	}
@@ -1269,7 +1275,7 @@ public class Changeset1
 		URL url;
 		url = new URL( api_path + "changesets?display_name=" + ( URLEncoder.encode( passed_display_name , "UTF-8" )) + "&time=" + passed_time );
 		
-		process_changesets_url_common( url, passed_display_name, "", 
+		process_changesets_url_common( url, passed_display_name, "", "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
@@ -1287,7 +1293,7 @@ public class Changeset1
 		URL url;
 		url = new URL( api_path + "changesets?user=" + ( URLEncoder.encode( passed_uid , "UTF-8" )) + "&time=" + passed_time );
 		
-		process_changesets_url_common( url, "", passed_uid, passed_min_lat_string, 
+		process_changesets_url_common( url, "", passed_uid, "", passed_min_lat_string, 
 				passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
@@ -1305,7 +1311,7 @@ public class Changeset1
 		URL url;
 		url = new URL( api_path + "changesets?display_name=" + ( URLEncoder.encode( passed_display_name , "UTF-8" )));
 		
-		process_changesets_url_common( url, passed_display_name, "", 
+		process_changesets_url_common( url, passed_display_name, "", "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
@@ -1323,7 +1329,7 @@ public class Changeset1
 		URL url;
 		url = new URL( api_path + "changesets?user=" + ( URLEncoder.encode( passed_uid , "UTF-8" )));
 		
-		process_changesets_url_common( url, "", passed_uid, 
+		process_changesets_url_common( url, "", passed_uid, "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
@@ -1341,7 +1347,7 @@ public class Changeset1
 		URL url;
 		url = new URL( api_path + "changesets?time=" + passed_time );
 		
-		process_changesets_url_common( url, "All Users", "", 
+		process_changesets_url_common( url, "All Users", "", "", 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
@@ -1359,7 +1365,7 @@ public class Changeset1
 		URL url;
 		url = new URL( api_path + "changeset/" + passed_id );
 		
-		process_changesets_url_common( url, "Any User", "", 
+		process_changesets_url_common( url, "Any User", "", passed_id, 
 				passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 				passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 	}
