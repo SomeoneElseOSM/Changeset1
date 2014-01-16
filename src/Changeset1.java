@@ -1221,29 +1221,39 @@ public class Changeset1
 		urlConn.setDoOutput( false );
 		urlConn.setUseCaches( false );
 	
-		input = new InputStreamReader( urlConn.getInputStream() );
-	
-	    char[] data = new char[ 256 ];
-	    int len = 0;
-		StringBuffer sb = new StringBuffer();		
-	
-	    while ( -1 != ( len = input.read( data, 0, 255 )) )
-	    {
-	        sb.append( new String( data, 0, len ));
-	    }   
-	
-	    DocumentBuilderFactory AJTfactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder AJTbuilder = AJTfactory.newDocumentBuilder();
-	    ByteArrayInputStream inputStream = new ByteArrayInputStream( sb.toString().getBytes( "UTF-8" ));
-	
-	    Document AJTdocument = AJTbuilder.parse( inputStream );
-	    Element AJTrootElement = AJTdocument.getDocumentElement();
-	    
-	    process_changesets_xml( AJTrootElement, passed_display_name, passed_uid, 
-	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
-	    		passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
-	
-	    input.close();
+		try
+		{
+			input = new InputStreamReader( urlConn.getInputStream() );
+			
+		    char[] data = new char[ 256 ];
+		    int len = 0;
+			StringBuffer sb = new StringBuffer();		
+		
+		    while ( -1 != ( len = input.read( data, 0, 255 )) )
+		    {
+		        sb.append( new String( data, 0, len ));
+		    }   
+		
+		    DocumentBuilderFactory AJTfactory = DocumentBuilderFactory.newInstance();
+		    DocumentBuilder AJTbuilder = AJTfactory.newDocumentBuilder();
+		    ByteArrayInputStream inputStream = new ByteArrayInputStream( sb.toString().getBytes( "UTF-8" ));
+		
+		    Document AJTdocument = AJTbuilder.parse( inputStream );
+		    Element AJTrootElement = AJTdocument.getDocumentElement();
+		    
+		    process_changesets_xml( AJTrootElement, passed_display_name, passed_uid, 
+		    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
+		    		passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
+		
+		    input.close();
+		}
+		catch( Exception ex )
+		{
+			if ( arg_debug >= Log_Error )
+			{
+				System.out.println( "Error obtaining: " + passed_url + ", " + ex.getMessage() );
+			}
+		}
 	}
 	
 	
@@ -1796,6 +1806,11 @@ public class Changeset1
  * ------------------------------------------------------------------------------ */
 		if ( arg_in_file.equals( "" ))
 		{
+			if ( arg_debug >= Log_Informational_2 )
+			{
+				System.out.println( "No input file" );
+			}
+			
  /* ------------------------------------------------------------------------------
   * If we're processing users and/or time we need one or both of those arguments.
   * ------------------------------------------------------------------------------ */
@@ -2130,6 +2145,7 @@ public class Changeset1
  * ------------------------------------------------------------------------------ */
 					if (( line_display_name.length() != 0 ) ||
 					    ( line_uid.length()          != 0 ) ||
+					    ( line_id.length()           != 0 ) ||
 					    ( line_time.length()         != 0 ) ||
 					    ( line_bbox.length()         != 0 ))
 					{
@@ -2141,6 +2157,11 @@ public class Changeset1
 						if ( line_uid.length() == 0 )
 						{
 							line_uid = arg_uid;
+						}
+						
+						if ( line_id.length() == 0 )
+						{
+							line_id = arg_id;
 						}
 						
 						if ( line_time.length() == 0 )
@@ -2171,9 +2192,18 @@ public class Changeset1
 							{
 								if ( line_uid.length() == 0 )
 								{
-									if ( arg_debug >= Log_Informational_2 )
+									if ( line_id.length() == 0 )
 									{
-										System.out.println( "None of display_name, uid or time passed on this line" );
+										if ( arg_debug >= Log_Informational_2 )
+										{
+											System.out.println( "None of display_name, uid, id or time passed on this line" );
+										}
+									}
+									else
+									{
+										process_id( line_id, 
+												line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
+												line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 									}
 								}
 								else
@@ -2213,6 +2243,13 @@ public class Changeset1
 										line_min_lat_string, line_min_lon_string, line_max_lat_string, line_max_lon_string, 
 										line_download_changeset, line_building, line_overlapnodes, line_download_nodes );
 							}
+						}
+					} // Some senesible parameters passed in an input file line
+					else
+					{
+						if ( arg_debug >= Log_Informational_1 )
+						{
+							System.out.println( "No data to process from line in input file" );
 						}
 					}
 				}
