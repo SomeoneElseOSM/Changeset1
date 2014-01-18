@@ -1251,7 +1251,6 @@ public class Changeset1
 		{
 			if ( arg_debug >= Log_Error )
 			{
-				//qqq
 				System.out.println( "Error obtaining: " + passed_url );
 			}
 			

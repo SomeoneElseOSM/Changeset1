@@ -2,23 +2,12 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-/**
- * 
- */
-
-/**
- * @author A.Townsend
- *
- */
 public class OsmObjectList 
 {
 
 	private List<OsmObjectKey> osmObjectList;
 	private Hashtable<OsmObjectKey, OsmObjectDetails> osmObjectHash;
 	
-	/**
-	 * 
-	 */
 	public OsmObjectList() 
 	{
 		osmObjectList = new ArrayList<OsmObjectKey>();

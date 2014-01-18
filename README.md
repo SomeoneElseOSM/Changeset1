@@ -88,7 +88,7 @@ Specifies a changeset id to download.  Use this instead of -display_name=, -user
 The time, specified in a way that the API will understand, to search for changesets from.
 
 ### -dev
-Use the dev server (api06.dev.openstreetmap.org) instead of the live one.
+Use the dev server ("api06.dev.openstreetmap.org") instead of the live one.
  
 ### -debug=0
 A number between 0 and 8, used to control the amount of debug written to stdout as processing occurs.  The higher the number, the more debug.
