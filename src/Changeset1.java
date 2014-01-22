@@ -844,14 +844,14 @@ public class Changeset1
 	        sb.append( new String( data, 0, len ));
 	    }   
 	
-	    DocumentBuilderFactory AJTfactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder AJTbuilder = AJTfactory.newDocumentBuilder();
+	    DocumentBuilderFactory myFactory = DocumentBuilderFactory.newInstance();
+	    DocumentBuilder myBuilder = myFactory.newDocumentBuilder();
 	    ByteArrayInputStream inputStream = new ByteArrayInputStream( sb.toString().getBytes( "UTF-8" ));
 	
-	    Document AJTdocument = AJTbuilder.parse( inputStream );
-	    Element AJTrootElement = AJTdocument.getDocumentElement();
+	    Document myDocument = myBuilder.parse( inputStream );
+	    Element rootElement = myDocument.getDocumentElement();
 	    
-	    nodes_overlap = process_downloaded_changeset_xml( AJTrootElement, passed_changeset_number, 
+	    nodes_overlap = process_downloaded_changeset_xml( rootElement, passed_changeset_number, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 	    		passed_building, passed_overlapnodes, passed_download_nodes );
 	
@@ -1234,14 +1234,14 @@ public class Changeset1
 		        sb.append( new String( data, 0, len ));
 		    }   
 		
-		    DocumentBuilderFactory AJTfactory = DocumentBuilderFactory.newInstance();
-		    DocumentBuilder AJTbuilder = AJTfactory.newDocumentBuilder();
+		    DocumentBuilderFactory myFactory = DocumentBuilderFactory.newInstance();
+		    DocumentBuilder myBuilder = myFactory.newDocumentBuilder();
 		    ByteArrayInputStream inputStream = new ByteArrayInputStream( sb.toString().getBytes( "UTF-8" ));
 		
-		    Document AJTdocument = AJTbuilder.parse( inputStream );
-		    Element AJTrootElement = AJTdocument.getDocumentElement();
+		    Document myDocument = myBuilder.parse( inputStream );
+		    Element rootElement = myDocument.getDocumentElement();
 		    
-		    process_changesets_xml( AJTrootElement, passed_display_name, passed_uid, 
+		    process_changesets_xml( rootElement, passed_display_name, passed_uid, 
 		    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, 
 		    		passed_download_changeset, passed_building, passed_overlapnodes, passed_download_nodes );
 		

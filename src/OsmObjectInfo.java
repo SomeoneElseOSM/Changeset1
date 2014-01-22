@@ -219,14 +219,14 @@ public class OsmObjectInfo {
 	        sb.append( new String( data, 0, len ));
 	    }   
 	
-	    DocumentBuilderFactory AJTfactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder AJTbuilder = AJTfactory.newDocumentBuilder();
+	    DocumentBuilderFactory myFactory = DocumentBuilderFactory.newInstance();
+	    DocumentBuilder myBuilder = myFactory.newDocumentBuilder();
 	    ByteArrayInputStream inputStream = new ByteArrayInputStream( sb.toString().getBytes( "UTF-8" ));
 	
-	    Document AJTdocument = AJTbuilder.parse( inputStream );
-	    Element AJTrootElement = AJTdocument.getDocumentElement();
+	    Document myDocument = myBuilder.parse( inputStream );
+	    Element rootElement = myDocument.getDocumentElement();
 
-	    return_value = process_node_xml( AJTrootElement, 
+	    return_value = process_node_xml( rootElement, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, passed_arg_debug );
 	
 	    input.close();
@@ -284,14 +284,14 @@ public class OsmObjectInfo {
 	        sb.append( new String( data, 0, len ));
 	    }   
 	
-	    DocumentBuilderFactory AJTfactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder AJTbuilder = AJTfactory.newDocumentBuilder();
+	    DocumentBuilderFactory myFactory = DocumentBuilderFactory.newInstance();
+	    DocumentBuilder myBuilder = myFactory.newDocumentBuilder();
 	    ByteArrayInputStream inputStream = new ByteArrayInputStream( sb.toString().getBytes( "UTF-8" ));
 	
-	    Document AJTdocument = AJTbuilder.parse( inputStream );
-	    Element AJTrootElement = AJTdocument.getDocumentElement();
+	    Document myDocument = myBuilder.parse( inputStream );
+	    Element rootElement = myDocument.getDocumentElement();
 
-	    return_value = process_node_xml( AJTrootElement, 
+	    return_value = process_node_xml( rootElement, 
 	    		passed_min_lat_string, passed_min_lon_string, passed_max_lat_string, passed_max_lon_string, passed_arg_debug );
 	
 	    input.close();
